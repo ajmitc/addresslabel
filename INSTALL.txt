@@ -1,0 +1,18 @@
+Address Label Utility
+=====================
+
+============
+Installation
+============
+
+Install Prerequisites:
+
+> sudo pip install pkipplib tlslite
+> sudo pip install --upgrade google-api-python-client
+> sudo apt-get install python-reportlab
+
+install google gdata library
+> unzip gdata-python-client-master.zip
+> cd gdata-python-client-master/
+> sudo python setup.py install
+
