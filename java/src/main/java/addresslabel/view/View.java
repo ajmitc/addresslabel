@@ -107,6 +107,9 @@ public class View
         JMenu templmenu = new JMenu( "Template" );
         templmenu.add( new AddPageAction( _model, this ) );
         templmenu.addSeparator();
+        templmenu.add( new SortByLastNameAction( _model, this ) );
+        templmenu.add( new SortByCountryAction( _model, this ) );
+        templmenu.addSeparator();
         ButtonGroup templgroup = new ButtonGroup();
         for( int idx = 0; idx < Model.TEMPLATES.length; ++idx )
         {

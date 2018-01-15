@@ -10,6 +10,8 @@ import addresslabel.util.CSVUtils;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -35,6 +37,7 @@ public class Model
     private String _defLabelTemplate;
     private List<SearchResult> _searchResults;
     private int _searchResultsIdx;
+    private List<CountryLabelTemplate> _countryLabelTemplates;
 
     public Model()
     {
@@ -54,6 +57,9 @@ public class Model
 
         _searchResults = new ArrayList<SearchResult>();
         _searchResultsIdx = 0;
+    
+        _countryLabelTemplates = new ArrayList<CountryLabelTemplate>();
+        _countryLabelTemplates.add( new GermanyLabelTemplate() );
     }
 
 
@@ -82,7 +88,18 @@ public class Model
                     _header = fields;
                 else
                 {
-                    _records.add( new Record( _defLabelTemplate, fields, _header ) );
+                    Record record = new Record( _defLabelTemplate, fields, _header );
+                    _records.add( record );
+
+                    // attempt to set a different country label template, if appropriate
+                    for( CountryLabelTemplate clt: _countryLabelTemplates )
+                    {
+                        if( clt.matches( record.get( Record.ADDRESS_COUNTRY ) ) )
+                        {
+                            record.setDefaultLabelTemplate( clt.template );
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -126,6 +143,31 @@ public class Model
         return used; 
     }
 
+    public void sortRecords( final String recordKey )
+    {
+        Collections.sort( _records, new Comparator<Record>(){
+            public int compare( Record r1, Record r2 )
+            {
+                if( !r1.isUsed() )
+                {
+                    if( !r2.isUsed() )
+                        return 0;
+                    return 1;
+                }
+                else if( !r2.isUsed() )
+                {
+                    return -1;
+                }
+                return r1.get( recordKey ).compareTo( r2.get( recordKey ) );
+            }
+
+            public boolean equals( Object obj )
+            {
+                return false;
+            }
+        });
+    }
+
     public int getPage(){ return _page; }
     public void setPage( int p ){ _page = p; }
 
@@ -141,5 +183,43 @@ public class Model
     public void setTemplate( int i )
     {
         _templateidx = i;
+    }
+
+
+    public static class CountryLabelTemplate
+    {
+        public List<String> matchCountry = new ArrayList<String>();
+        public String template;
+
+        public CountryLabelTemplate()
+        {
+
+        }
+
+        public boolean matches( String country )
+        {
+            for( String c: matchCountry )
+            {
+                if( c.equalsIgnoreCase( country ) )
+                    return true;
+            }
+            return false;
+        }
+    }
+
+
+    public static class GermanyLabelTemplate extends CountryLabelTemplate
+    {
+        public GermanyLabelTemplate()
+        {
+            super();
+            matchCountry.add( "Germany" );
+            matchCountry.add( "Deutschland" );
+            template = "{" + Record.TITLE + "} {" + Record.FIRST_NAME + "} {" + Record.MIDDLE_NAME + "} {" + Record.LAST_NAME + "} {" + Record.SUFFIX + "}\n";
+            template += "{" + Record.ADDRESS_STREET_1 + "}\n";
+            template += "{" + Record.ADDRESS_STREET_2 + "}\n";
+            template += "{" + Record.ADDRESS_ZIP + "}, {" + Record.ADDRESS_CITY + "}\n";
+            template += "{" + Record.ADDRESS_COUNTRY + "}\n";
+        }
     }
 }

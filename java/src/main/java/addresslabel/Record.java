@@ -50,6 +50,8 @@ public class Record
     };
 
     public static final Map<String, List<String>> LABEL_MAPPING = new HashMap<>();
+    public static final List<String> PARSE_ADDR_REGEXPS = new ArrayList<>();
+    public static final List<Pattern> PARSE_ADDR_PATTERNS = new ArrayList<>();
     static {
         LABEL_MAPPING.put( ADDRESS, new ArrayList<String>() );
         LABEL_MAPPING.get( ADDRESS ).add( "address" );
@@ -73,6 +75,18 @@ public class Record
 
         LABEL_MAPPING.put( ADDRESS_COUNTRY, new ArrayList<String>() );
         LABEL_MAPPING.get( ADDRESS_COUNTRY ).add( "country" );
+
+
+        // USA Address (Default)
+        PARSE_ADDR_REGEXPS.add( "(?<name>[a-zA-Z \\.]+)\n(?<street1>[0-9a-zA-Z \\.]+)\n(?<city>[a-zA-Z ]+), *(?<state>[A-Z]{2}) +(?<zip>[0-9-]{5,10})" );
+        PARSE_ADDR_REGEXPS.add( "(?<name>[a-zA-Z \\.]+)\n(?<street1>[0-9a-zA-Z \\.]+)\n(?<street2>[0-9a-zA-Z \\.]+)\n(?<city>[a-zA-Z ]+), *(?<state>[A-Z]{2}) +(?<zip>[0-9-]{5,10})" );
+        // Germany
+        PARSE_ADDR_REGEXPS.add( "(?<name>[a-zA-Z \\.]+)\n(?<street1>[0-9a-zA-Z \\.]+)\n(?<street2>[0-9a-zA-Z \\.]+)\n(?<zip>[0-9-]{5}), (?<city>[a-zA-Z ]+)\n(?<country>(?i)germany(?-i))" );
+
+        for( String regex: PARSE_ADDR_REGEXPS )
+        {
+            PARSE_ADDR_PATTERNS.add( Pattern.compile( regex ) );
+        }
     }
 
 
@@ -150,7 +164,11 @@ public class Record
     {
         if( header != null )
         {
-            return _mapRecordListWithHeaderList( rawdata, header );
+            if( _mapRecordListWithHeaderList( rawdata, header ) )
+            {
+                _autoFillInFields();
+                return true;
+            }
         }
         _logger.warning( "Unsupported record format" );
         return false;
@@ -167,15 +185,15 @@ public class Record
                 _logger.warning( "record length (" + rawdata.size() + ") on line " + (i + 1) + " has fewer fields than header (" + header.size() + ")" );
                 continue;
             }
-            String v = rawdata.get( i );
+            String v = rawdata.get( i ).trim();
             String key = _mapHeader( h );
             if( key != null )
             {
-                _data.put( key, v );
+                _data.put( key.trim().toLowerCase(), v );
             }
             else
             {
-                _data.put( h, v );
+                _data.put( h.trim().toLowerCase(), v );
             }
         }
         return true;
@@ -209,6 +227,103 @@ public class Record
     }
 
 
+    /**
+     * Some record fields are messed up, attempt to fix them
+     */
+    private void _autoFillInFields()
+    {
+        // Set default fields
+        if( get( ADDRESS_COUNTRY ).equals( "" ) )
+        {
+            _data.put( ADDRESS_COUNTRY, "United States of America" );
+        }
+
+
+
+        // Detect bad record
+        // Every record should have a street
+        List<String> missing = new ArrayList<String>();
+        if( get( ADDRESS_STREET_1 ).equals( "" ) )
+        {
+            missing.add( ADDRESS_STREET_1 );
+        }
+
+        if( get( ADDRESS_CITY ).equals( "" ) )
+        {
+            missing.add( ADDRESS_CITY );
+        }
+
+        if( get( ADDRESS_ZIP ).equals( "" ) )
+        {
+            missing.add( ADDRESS_ZIP );
+        }
+
+        // Mandatory fields are not empty, do nothing
+        if( missing.size() == 0 )
+            return;
+
+        // Check if the ADDRESS field is not empty
+        String address = get( ADDRESS );
+        if( !address.equals( "" ) )
+        {
+            if( _parseAddressString( address ) )
+                return;
+        }
+
+        // Check if OTHER ADDRESS field(s) are not empty
+        address = get( "other address" );
+        if( !address.equals( "" ) )
+        {
+            if( _parseAddressString( address ) )
+                return;
+        }
+    }
+
+
+    /**
+     * @return true if address parsed successfully, false otherwise
+     */
+    private boolean _parseAddressString( String address )
+    {
+        for( Pattern pattern: PARSE_ADDR_PATTERNS )
+        {
+            Matcher matcher = pattern.matcher( address );
+            if( matcher != null )
+            {
+                if( matcher.matches() )
+                {
+                    if( _data.get( ADDRESS_STREET_1 ).equals( "" ) )
+                    {
+                        _data.put( ADDRESS_STREET_1, matcher.group( "street1" ) );
+                    }
+
+                    if( _data.get( ADDRESS_STREET_2 ).equals( "" ) && matcher.group( "street2" ) != null )
+                    {
+                        _data.put( ADDRESS_STREET_2, matcher.group( "street2" ) );
+                    }
+
+                    if( _data.get( ADDRESS_CITY ).equals( "" ) && matcher.group( "city" ) != null )
+                    {
+                        _data.put( ADDRESS_CITY, matcher.group( "city" ) );
+                    }
+
+                    if( _data.get( ADDRESS_STATE ).equals( "" ) && matcher.group( "state" ) != null )
+                    {
+                        _data.put( ADDRESS_STATE, matcher.group( "state" ) );
+                    }
+
+                    if( _data.get( ADDRESS_ZIP ).equals( "" ) && matcher.group( "zip" ) != null )
+                    {
+                        _data.put( ADDRESS_ZIP, matcher.group( "zip" ) );
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
     private String _format( String template )
     {
         for( String lbl: LABELS )
@@ -235,7 +350,6 @@ public class Record
             template = template.replaceAll( "  +", " " );
         }
         template = template.replaceAll( "\n\n", "\n" );
-        template = template.replaceAll( "\n", "<br/>" );
         return template.trim();
     }
 
@@ -305,5 +419,10 @@ public class Record
 
     public boolean isUsed(){ return _used; }
     public void setUsed( boolean u ){ _used = u; }
+
+    public void setDefaultLabelTemplate( String defLabelTemplate )
+    {
+        _defLabelTemplate = defLabelTemplate;
+    }
 }
 

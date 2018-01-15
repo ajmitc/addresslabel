@@ -25,7 +25,7 @@ public class ExportToPdfAction extends AbstractAction
         _model = model;
         _view  = view;
         putValue( Action.SHORT_DESCRIPTION, "Export to PDF File" );
-        putValue( Action.MNEMONIC_KEY, new Integer( KeyEvent.VK_O ) );
+        putValue( Action.MNEMONIC_KEY, new Integer( KeyEvent.VK_X ) );
     }
 
 

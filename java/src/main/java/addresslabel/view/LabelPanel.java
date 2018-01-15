@@ -1,7 +1,7 @@
 package addresslabel.view;
 
 import javax.swing.JPanel;
-import javax.swing.JEditorPane;
+import javax.swing.JTextPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
@@ -39,7 +39,7 @@ public class LabelPanel extends JPanel implements ActionListener
     private Model _model;
     private View _view;
 
-    private JEditorPane _epLabel;
+    private JTextPane _tpLabel;
     private Record _record;
     private JPopupMenu _popup;
 
@@ -55,12 +55,12 @@ public class LabelPanel extends JPanel implements ActionListener
 
         _record = null;
 
-        //_epLabel = new JEditorPane();// height=5, width=35, wrap=WORD )
-        _epLabel = new JEditorPane( new HTMLEditorKit().getContentType(), " " );
-        _epLabel.setEditable( false );
-        //_epLabel.setContentType( "text/plain" );  // "text/html"
-        _epLabel.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ), BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Color.BLACK ), BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) ) );
-        _epLabel.addFocusListener( new FocusListener(){
+        _tpLabel = new JTextPane();
+        _tpLabel.setEditable( false );
+        _tpLabel.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ), BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Color.BLACK ), BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) ) );
+        //StyledDocument doc = _tpLabel.getStyledDocument();
+
+        _tpLabel.addFocusListener( new FocusListener(){
             public void focusLost( FocusEvent e )
             {
                 save();
@@ -72,7 +72,7 @@ public class LabelPanel extends JPanel implements ActionListener
             }
         });
 
-        add( new JScrollPane( _epLabel ), BorderLayout.CENTER );
+        add( new JScrollPane( _tpLabel ), BorderLayout.CENTER );
 
         //Create the popup menu.
         _popup = new JPopupMenu();
@@ -93,7 +93,7 @@ public class LabelPanel extends JPanel implements ActionListener
 
         //Add listener to components that can bring up popup menus.
         MouseListener popupListener = new PopupListener();
-        _epLabel.addMouseListener( popupListener );
+        _tpLabel.addMouseListener( popupListener );
     }
 
 
@@ -122,7 +122,7 @@ public class LabelPanel extends JPanel implements ActionListener
         {
             if( _record != null )
             {
-                _epLabel.setEditable( true );
+                _tpLabel.setEditable( true );
             }
         }
         else if( menuitem.getLabel().equals( "Refresh" ) )
@@ -150,7 +150,7 @@ public class LabelPanel extends JPanel implements ActionListener
             font = sysfont.getFamily();
         }
 
-        Style bodyStyle = ((HTMLDocument) _epLabel.getDocument()).getStyleSheet().getRule( "body" );
+        Style bodyStyle = ((HTMLDocument) _tpLabel.getDocument()).getStyleSheet().getRule( "body" );
         if( bodyStyle == null )
         {
             addBodyRule( "font-family: " + font );
@@ -170,7 +170,7 @@ public class LabelPanel extends JPanel implements ActionListener
             size = sysfont.getSize();
         }
 
-        Style bodyStyle = ((HTMLDocument) _epLabel.getDocument()).getStyleSheet().getRule( "body" );
+        Style bodyStyle = ((HTMLDocument) _tpLabel.getDocument()).getStyleSheet().getRule( "body" );
         if( bodyStyle == null )
         {
             addBodyRule( "font-size: " + size + "pt;" );
@@ -183,7 +183,7 @@ public class LabelPanel extends JPanel implements ActionListener
     public void addBodyRule( String rule )
     {
         String bodyRule = "body { " + rule + " }";
-        ((HTMLDocument) _epLabel.getDocument()).getStyleSheet().addRule( bodyRule );
+        ((HTMLDocument) _tpLabel.getDocument()).getStyleSheet().addRule( bodyRule );
     }
 
 
@@ -208,12 +208,12 @@ public class LabelPanel extends JPanel implements ActionListener
 
     public void refresh( boolean clearDisplay )
     {
-        _epLabel.setText( "" );
+        _tpLabel.setText( "" );
         if( _record != null )
         {
             if( clearDisplay )
                 _record.setDisplay( null );
-            _epLabel.setText( _record.getDisplay() );
+            _tpLabel.setText( _record.getDisplay() );
         }
     }
 
@@ -222,8 +222,8 @@ public class LabelPanel extends JPanel implements ActionListener
     {
         if( _record != null )
         {
-            _record.setDisplay( _epLabel.getText() );
-            _epLabel.setEditable( false );
+            _record.setDisplay( _tpLabel.getText() );
+            _tpLabel.setEditable( false );
         }
     }
 

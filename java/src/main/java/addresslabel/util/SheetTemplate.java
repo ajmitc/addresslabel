@@ -72,12 +72,6 @@ public class SheetTemplate
             PDDocument doc = new PDDocument();
             // a valid PDF document requires at least one page
 
-            PDFont font = null;
-            if( _fontName.equalsIgnoreCase( "Helvetica" ) )
-                font = PDType1Font.HELVETICA;
-            else
-                font = PDType1Font.HELVETICA;
-            
             int recordidx = 0;
             boolean done = false;
             while( !done )  // for each Page
@@ -89,9 +83,6 @@ public class SheetTemplate
                 float pageHeight = page.getMediaBox().getHeight();
 
                 PDPageContentStream contents = new PDPageContentStream( doc, page );
-                contents.beginText();
-                contents.setFont( font, _fontSize );
-
                 double topmargin  = _margins[ TOP    ] * INCH;
                 double leftmargin = _margins[ LEFT   ] * INCH;
                 double botmargin  = _margins[ BOTTOM ] * INCH;
@@ -113,7 +104,7 @@ public class SheetTemplate
                         int y = (int) (pageHeight - topmargin - (row * _verticalPitch * INCH));
                         int x = (int) (leftmargin + (col * _horizontalPitch * INCH));
                         Record r = records.get( recordidx );
-                        _drawLabel( contents, font, x, y, r );
+                        _drawLabel( doc, contents, x, y, r );
 
                         recordidx += 1;
                         if( recordidx >= records.size() )
@@ -125,7 +116,6 @@ public class SheetTemplate
                     if( done )
                         break;
                 }
-                contents.endText();
                 contents.close();
             }
 
@@ -139,11 +129,11 @@ public class SheetTemplate
         }
     }
 
-    private void _drawLabel( PDPageContentStream c, PDFont font, int x, int y, Record record )
+    private void _drawLabel( PDDocument doc, PDPageContentStream c, int x, int y, Record record )
     {
         try
         {
-            String[] lines = record.getDisplay().split( "<br/>" );
+            String[] lines = record.getDisplay().split( "\n" );
             // get max line length
             String maxline = "";
             for( String line: lines )
@@ -153,8 +143,14 @@ public class SheetTemplate
                     maxline = line;
             }
 
+            PDFont font = null;
+            if( _fontName.equalsIgnoreCase( "Helvetica" ) )
+                font = PDType1Font.HELVETICA;
+            else
+                font = PDType1Font.HELVETICA;
+
             // center text in label
-            double maxlinelen = font.getStringWidth( maxline ) * _fontSize;
+            double maxlinelen = font.getStringWidth( maxline ) * _fontSize / 1000.0;
             int cx = x + (int) (((_labelWidth  * INCH) - maxlinelen) / 2);
             // Include margin
             if( cx < x + (int) (_labelMargins[ LEFT ] * INCH) )
@@ -167,23 +163,21 @@ public class SheetTemplate
             if( maxlinelen > maxwidth )
             {
                 //self.log.debug( "maxlinelen (%d) > maxwidth (%d)" % (maxlinelen, maxwidth) )
-                double charwidth = font.getStringWidth( "a" ) * _fontSize;
+                double charwidth = font.getStringWidth( "a" ) * _fontSize / 1000.0;
                 // One or more of the lines exceed the max width
                 for( String line: lines )
                 {
                     line = line.replace( "\n", "" ).replace( "\r", "" );
-                    double w = font.getStringWidth( line ) * _fontSize;
+                    double w = font.getStringWidth( line ) * _fontSize / 1000.0;
                     if( w > maxwidth )
                     {
-                        //self.log.debug( "   Found line '%s' with length %d > maxwidth %d" % (line, w, maxwidth) )
-                        int maxchars = (int) (maxwidth / charwidth);
-                        //self.log.debug( "      maxchars = %d" % (maxchars) )
+                        int maxchars = Math.min( (int) (maxwidth / charwidth), line.length() );
                         while( line.charAt( maxchars ) != ' ' && maxchars > 0 )
+                        {
                             maxchars -= 1;
+                        }
                         String line1 = line.substring( 0, maxchars + 1 );
                         String line2 = line.substring( maxchars, line.length() );
-                        //self.log.debug( "      line1 = '%s'" % (line1) )
-                        //self.log.debug( "      line2 = '%s'" % (line2) )
                         labelLines.add( line1 );
                         labelLines.add( line2 );
                     }
@@ -205,20 +199,23 @@ public class SheetTemplate
             int cy = y - (int) (_labelMargins[ TOP ] * INCH) - _fontSize;
 
             // Get the string height in text space units.
-            float stringHeight = font.getFontDescriptor().getFontBoundingBox().getHeight() * _fontSize;
+            float stringHeight = font.getFontDescriptor().getFontBoundingBox().getHeight() * _fontSize / 1000.f;
 
-            c.setTextMatrix( Matrix.getTranslateInstance( cx, cy ) );
+            c.beginText();
+            c.setFont( font, _fontSize );
+            c.newLineAtOffset( cx, cy );
+
             for( int i = 0; i < labelLines.size(); ++i )
             {
                 String line = labelLines.get( i );
-                // Get the non-justified string width in text space units.
-                //float stringWidth = font.getStringWidth( line ) * FONT_SIZE;
-                c.newLine();
                 c.showText( line );
+                c.newLineAtOffset( 0, -stringHeight );
             }
+            c.endText();
             if( _drawLabelBorder )
             {
-                //c.roundRect( x, y - (self.label_height * INCH), self.label_width * INCH, self.label_height * INCH, 5 )
+                //RoundRect roundRect = new RoundRect( 5, 5 );
+                //roundRect.add( doc, c, (float) x, (float) (y - (_labelHeight * INCH)), (float) (_labelWidth * INCH), (float) (_labelHeight * INCH) );
             }
         }
         catch( Exception e )
