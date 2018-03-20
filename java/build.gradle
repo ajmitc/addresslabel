@@ -23,6 +23,7 @@ task dist(type: Jar) {
         attributes (
             'Implementation-Title': 'Address Label Easy Button',
             'Implementation-Version': version,
+            "Class-Path": configurations.compile.collect { it.getName() }.join(' '),
             'Main-Class': 'addresslabel.Main'
         )
     } 

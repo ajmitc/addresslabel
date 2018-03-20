@@ -2,6 +2,7 @@ package addresslabel.action;
 
 import javax.swing.Action;
 import javax.swing.AbstractAction;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -11,16 +12,17 @@ import addresslabel.view.AboutDialog;
 
 public class DisplayAboutAction extends AbstractAction
 {
+    private Model _model;
     private View _view;
 
-    public DisplayAboutAction( View view )
+    public DisplayAboutAction( Model model, View view )
     {
         super( "About" );
-        _view  = view;
-        putValue( Action.SHORT_DESCRIPTION, "Display About Dialog" );
+        putValue( Action.SHORT_DESCRIPTION, "Display About dialog" );
         putValue( Action.MNEMONIC_KEY, new Integer( KeyEvent.VK_A ) );
+        _model = model;
+        _view = view;
     }
-
 
     public void actionPerformed( ActionEvent e )
     {
@@ -28,3 +30,4 @@ public class DisplayAboutAction extends AbstractAction
         d.setVisible( true );
     }
 }
+

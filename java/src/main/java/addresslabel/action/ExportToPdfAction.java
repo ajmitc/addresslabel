@@ -47,6 +47,7 @@ public class ExportToPdfAction extends AbstractAction
         catch( IOException ioe )
         {
             ioe.printStackTrace();
+            return;
         }
 
         if( Desktop.isDesktopSupported() )
@@ -56,10 +57,26 @@ public class ExportToPdfAction extends AbstractAction
                 File myFile = new File( fn );
                 Desktop.getDesktop().open( myFile );
             }
+            catch( IllegalArgumentException iae ) // if the specified file dosen't exist 
+            {
+                iae.printStackTrace();
+            }
+            catch( UnsupportedOperationException uoe ) // if the current platform does not support the Desktop.Action.OPEN action 
+            {
+                uoe.printStackTrace();
+            }
             catch( IOException ex ) 
             {
                 // no application registered for PDFs
                 System.err.println( "No application registered to open PDFs, file save at " + fn );
+            }
+            catch( SecurityException se ) // insufficient permissions
+            {
+                se.printStackTrace();
+            }
+            catch( Exception ex )
+            {
+                ex.printStackTrace();
             }
         }
         else
@@ -72,9 +89,6 @@ public class ExportToPdfAction extends AbstractAction
             {
                 exc.printStackTrace();
             }
-
-            //if sys.platform.startswith( 'linux' ):
-            //subprocess.call( [ "xdg-open", fn ] )
         }
     }
 
@@ -84,5 +98,5 @@ public class ExportToPdfAction extends AbstractAction
         //return "C:\\temp\\%s.pdf" % uuid.uuid4()
         return String.format( "/tmp/contact-labels-%s.pdf", UUID.randomUUID().toString() );
     }
-
 }
+

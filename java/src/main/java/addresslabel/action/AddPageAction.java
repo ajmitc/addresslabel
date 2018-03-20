@@ -25,7 +25,7 @@ public class AddPageAction extends AbstractAction
 
     public void actionPerformed( ActionEvent e )
     {
-        _model.addEmptyRecords( _view.getRecordsPerPage() );
+        _model.addEmptyRecords( _model.getRecordsPerPage() );
         _view.refresh();
     }
 }

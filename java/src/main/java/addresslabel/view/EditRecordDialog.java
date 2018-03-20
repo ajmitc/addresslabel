@@ -12,10 +12,10 @@ import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Collections;
 
 import addresslabel.Record;
@@ -25,9 +25,9 @@ public class EditRecordDialog extends BaseDialog
     private Record _record;
     private Map<JTextField, JTextField> _fields;
 
-    public EditRecordDialog( Record record, JFrame frame )
+    public EditRecordDialog( JFrame parent, Record record )
     {
-        super( frame, "Edit Record", true, 400, 400 );
+        super( parent, "Edit Record", true, 400, 400 );
         _record = record;
 
         JPanel content = new JPanel( new BorderLayout() );
@@ -37,13 +37,11 @@ public class EditRecordDialog extends BaseDialog
 
         List<String> keys = new ArrayList<>();
         for( String lbl: Record.LABELS )
-        {
             keys.add( lbl );
-        }
 
-        List<String> keyset = new ArrayList<String>( _record.getData().keySet() );
-        Collections.sort( keyset );
-        for( String lbl: keyset )
+        List<String> recordKeys = new ArrayList<>( _record.getData().keySet() );
+        Collections.sort( recordKeys );
+        for( String lbl: recordKeys )
         {
             if( !keys.contains( lbl ) )
             {
@@ -56,13 +54,11 @@ public class EditRecordDialog extends BaseDialog
         for( int i = 0; i < keys.size(); ++i )
         {
             String key = keys.get( i );
-            if( Record.shouldIgnore( key ) )
+            if( Record.LABEL_IGNORE.contains( key ) )
                 continue;
-            JTextField keyentry = new JTextField();
-            keyentry.setText( key );
+            JTextField keyentry = new JTextField( key );
             fieldspanel.add( keyentry );
-            JTextField valentry = new JTextField();
-            valentry.setText( _record.get( key ) );
+            JTextField valentry = new JTextField( _record.getData().get( key ) );
             fieldspanel.add( valentry );
             _fields.put( keyentry, valentry );
         }
@@ -70,7 +66,7 @@ public class EditRecordDialog extends BaseDialog
         content.add( new JScrollPane( fieldspanel ), BorderLayout.CENTER );
         setContent( content );
         
-        addCloseActionListener( "Save", new ActionListener(){
+        addCloseActionListener( "Apply", new ActionListener(){
             public void actionPerformed( ActionEvent e )
             {
                 apply();

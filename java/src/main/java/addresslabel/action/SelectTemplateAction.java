@@ -7,25 +7,33 @@ import java.awt.event.KeyEvent;
 
 import addresslabel.Model;
 import addresslabel.view.View;
-import addresslabel.view.HelpDialog;
+import addresslabel.template.Template;
+
 
 public class SelectTemplateAction extends AbstractAction
 {
+    private Model _model;
     private View _view;
-    private int _index;
+    private Template _template;
 
-    public SelectTemplateAction( View view, String templateName, int index )
+    public SelectTemplateAction( Model model, View view, Template templ )
     {
-        super( templateName );
-        _view  = view;
-        _index = index;
-        putValue( Action.SHORT_DESCRIPTION, "Select Template '" + templateName + "'" );
+        super( templ.getName() );
+        putValue( Action.SHORT_DESCRIPTION, "Select Label Template" );
         putValue( Action.MNEMONIC_KEY, new Integer( KeyEvent.VK_T ) );
+        _model = model;
+        _view = view;
+        _template = templ;
     }
-
 
     public void actionPerformed( ActionEvent e )
     {
-        _view.selectTemplate( _index );
+        if( _template == _model.getTemplate() )
+            return;
+        _model.setTemplate( _template );
+        _view.getSheetPanel().reset();
+        _model.setPage( 0 );
+        _view.displayPage();
     }
 }
+

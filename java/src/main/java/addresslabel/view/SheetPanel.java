@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import addresslabel.Model;
 import addresslabel.Record;
 import addresslabel.util.Logger;
-import addresslabel.util.SheetTemplate;
+import addresslabel.template.Template;
 
 public class SheetPanel extends JPanel
 {
@@ -20,26 +20,24 @@ public class SheetPanel extends JPanel
     private Logger _logger;
     private Model _model;
     private View _view;
-    private SheetTemplate _sheetTemplate;
     private List<LabelPanel> _labelPanels;
     private LabelPanel _highlighted;
     private Color _origBg;
 
-    public SheetPanel( Model model, View view, SheetTemplate sheetTemplate )
+    public SheetPanel( Model model, View view )
     {
         super();
-        setLayout( new GridLayout( sheetTemplate.getRows(), sheetTemplate.getColumns() ) );
+        setLayout( new GridLayout( model.getTemplate().getRows(), model.getTemplate().getColumns() ) );
 
         _logger = Logger.getLogger( "SheetFrame" );
         _model  = model;
         _view   = view;
-        _sheetTemplate = sheetTemplate;
         _labelPanels = new ArrayList<LabelPanel>();
         _highlighted = null;
 
-        for( int row = 0; row < _sheetTemplate.getRows(); ++row )
+        for( int row = 0; row < _model.getTemplate().getRows(); ++row )
         {
-            for( int col = 0; col < _sheetTemplate.getColumns(); ++col )
+            for( int col = 0; col < _model.getTemplate().getColumns(); ++col )
             {
                 LabelPanel txtlabel = new LabelPanel( _model, _view );
                 add( txtlabel );
@@ -48,6 +46,11 @@ public class SheetPanel extends JPanel
         }
 
         _origBg = (_labelPanels.size() > 0)? _labelPanels.get( 0 ).getBackground(): Color.WHITE;
+    }
+
+    public void reset()
+    {
+        // TODO Clear out current LabelPanels and add new ones in accordance with currently selected Template
     }
 
 
@@ -86,9 +89,6 @@ public class SheetPanel extends JPanel
             }
         }
     }
-
-    public SheetTemplate getSheetTemplate(){ return _sheetTemplate; }
-    public void setSheetTemplate( SheetTemplate t ){ _sheetTemplate = t; }
 
     public List<LabelPanel> getLabelPanels(){ return _labelPanels; }
 }

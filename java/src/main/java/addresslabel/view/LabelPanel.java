@@ -104,7 +104,7 @@ public class LabelPanel extends JPanel implements ActionListener
         {
             if( _record != null )
             {
-                EditRecordDialog d = new EditRecordDialog( _record, _view.getFrame() );
+                EditRecordDialog d = new EditRecordDialog( _view.getFrame(), _record );
                 d.setVisible( true );
                 refresh( true );
             }
@@ -113,7 +113,7 @@ public class LabelPanel extends JPanel implements ActionListener
         {
             if( _record != null )
             {
-                EditTemplateDialog d = new EditTemplateDialog( _record, Record.LABELS, _model, _view );
+                EditTemplateDialog d = new EditTemplateDialog( _model, _view, _record );
                 d.setVisible( true );
                 refresh( true );
             }
@@ -199,7 +199,6 @@ public class LabelPanel extends JPanel implements ActionListener
         _record = r;
         refresh();
     }
-
 
     public void refresh()
     {

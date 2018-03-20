@@ -7,6 +7,7 @@ import javax.swing.JPanel;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JComponent;
+import javax.swing.JScrollPane;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -19,6 +20,7 @@ public class BaseDialog extends JDialog
     private JButton _btnCancel;
     private JButton _btnClose;
     private boolean _cancelled;
+
     private JPanel  _customButtonPanel;
 
     public BaseDialog( JFrame parent, String title, boolean modal, int width, int height )
@@ -71,9 +73,24 @@ public class BaseDialog extends JDialog
         getContentPane().add( panel, BorderLayout.CENTER );
     }
 
+    public void setContent( JScrollPane panel )
+    {
+        getContentPane().add( panel, BorderLayout.CENTER );
+    }
+
+    public void hideClose( boolean v )
+    {
+        _btnClose.setVisible( v );
+    }
+
     public void hideClose()
     {
         _btnClose.setVisible( false );
+    }
+
+    public void hideCancel( boolean v )
+    {
+        _btnCancel.setVisible( !v );
     }
 
     public void hideCancel()
@@ -119,5 +136,7 @@ public class BaseDialog extends JDialog
     public void setCancelled( boolean v ){ _cancelled = v; }
 
     public JPanel getCustomButtonPanel(){ return _customButtonPanel; }
+    public JButton getCloseButton(){ return _btnClose; }
+    public JButton getCancelButton(){ return _btnCancel; }
 }
 

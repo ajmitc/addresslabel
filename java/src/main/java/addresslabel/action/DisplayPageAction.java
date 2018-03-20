@@ -40,16 +40,18 @@ public class DisplayPageAction extends AbstractAction
     {
         if( _model.getPage() == 0 )
             return;
-        _view.displayPage( _model.getPage() - 1 );
+        _model.setPage( _model.getPage() - 1 );
+        _view.displayPage();
     }
 
 
     public void displayNextPage()
     {
-        int recordsPerPage = _view.getRecordsPerPage();
+        int recordsPerPage = _model.getRecordsPerPage();
         if( _model.getPage() < (Math.ceil( (float) _model.getRecords().size() / (float) recordsPerPage )) - 1 )
         {
-            _view.displayPage( _model.getPage() + 1 );
+            _model.setPage( _model.getPage() + 1 );
+            _view.displayPage();
         }
     }
 }

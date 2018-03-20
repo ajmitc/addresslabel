@@ -1,22 +1,23 @@
 package addresslabel;
 
-import addresslabel.util.Util;
-import addresslabel.util.Logger;
-import addresslabel.util.SearchResult;
-import addresslabel.util.Avery5160Template;
-import addresslabel.util.SheetTemplate;
-import addresslabel.util.CSVUtils;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 
 import com.opencsv.CSVReader;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+
+import addresslabel.template.*;
+import addresslabel.util.Logger;
+import addresslabel.util.SearchResult;
+import addresslabel.util.Util;
+import addresslabel.util.CSVUtils;
+
 
 public class Model
 {
@@ -24,16 +25,16 @@ public class Model
 
     public static final String CONFIG_FILE = "addrlbl.conf";
 
-    public static final SheetTemplate[] TEMPLATES = {
+    public static final Template[] TEMPLATES = {
         new Avery5160Template()
     };
 
     private Logger _logger;
-    private int _templateidx;
-    private List<String> _header;
+
+    private Template _template; // selected template
     private List<Record> _records;
-    private int _page;
     private String _loadedFilepath;
+    private int _page;
     private String _defLabelTemplate;
     private List<SearchResult> _searchResults;
     private int _searchResultsIdx;
@@ -41,12 +42,11 @@ public class Model
 
     public Model()
     {
-        _logger = Logger.getLogger( "Model" );
-        _templateidx = 0;
-        _header = null;
+        _logger = Logger.getLogger( Model.class );
+        _template = TEMPLATES[ 0 ];
         _records = new ArrayList<>();
-        _page = 0;  // Currently displayed page
         _loadedFilepath = null;
+        _page = 0;  // Currently displayed page
 
         // default format template
         _defLabelTemplate = "{" + Record.TITLE + "} {" + Record.FIRST_NAME + "} {" + Record.MIDDLE_NAME + "} {" + Record.LAST_NAME + "} {" + Record.SUFFIX + "}\n";
@@ -55,13 +55,12 @@ public class Model
         _defLabelTemplate += "{" + Record.ADDRESS_CITY + "}, {" + Record.ADDRESS_STATE + "} {" + Record.ADDRESS_ZIP + "}\n";
         _defLabelTemplate += "{" + Record.ADDRESS_COUNTRY_NOT_USA + "}\n";
 
-        _searchResults = new ArrayList<SearchResult>();
+        _searchResults = new ArrayList<>();
         _searchResultsIdx = 0;
-    
+
         _countryLabelTemplates = new ArrayList<CountryLabelTemplate>();
         _countryLabelTemplates.add( new GermanyLabelTemplate() );
     }
-
 
     public boolean loadContactsFromFile( String filename )
     {
@@ -77,18 +76,21 @@ public class Model
     public boolean loadContactsCsv( String filepath )
     {
         _logger.info( "Loading " + filepath );
+
         try
         {
             CSVReader reader = new CSVReader( new FileReader( filepath ) );
+            List<String> header = null;
             String[] entry;
             while( (entry = reader.readNext()) != null )
             {
                 List<String> fields = Arrays.asList( entry );
-                if( _header == null )
-                    _header = fields;
+                if( header == null )
+                    header = fields;
                 else
                 {
-                    Record record = new Record( _defLabelTemplate, fields, _header );
+                    Map<String, String> data = Util.zipToMap( header, fields );
+                    Record record = new Record( data, _defLabelTemplate );
                     _records.add( record );
 
                     // attempt to set a different country label template, if appropriate
@@ -111,6 +113,7 @@ public class Model
             addEmptyRecords( missingRecords );
 
             _page = 0;
+            _loadedFilepath = filepath;
             return true;
         }
         catch( Exception e )
@@ -120,10 +123,13 @@ public class Model
         }
     }
 
-    public void exit()
+    public boolean writeCsv()
     {
-        System.exit( 0 );
+        // Write to _loadedFilepath
+        return false;
     }
+
+
 
     public void addEmptyRecords( int num )
     {
@@ -169,21 +175,45 @@ public class Model
     }
 
     public int getPage(){ return _page; }
-    public void setPage( int p ){ _page = p; }
+    public void setPage( int p )
+    {
+        _page = p; 
+        if( _page < 0 ) _page = 0;
+        if( _page >= getNumPagesToFitRecords() ) _page = getNumPagesToFitRecords() - 1;
+    }
+    public void adjPage( int v )
+    {
+        setPage( _page + v );
+    }
+
+    public int getRecordsPerPage()
+    {
+        return getTemplate().getRows() * getTemplate().getColumns();
+    }
+
+    public int getNumPagesToFitRecords()
+    {
+        return (int) Math.ceil( (float) _records.size() / (float) getRecordsPerPage() );
+    }
+
+    public String getDefaultTemplate(){ return _defLabelTemplate; }
 
     public List<SearchResult> getSearchResults(){ return _searchResults; }
-    public int getSearchResultsIdx(){ return _searchResultsIdx; }
-    public void setSearchResultsIdx( int i ){ _searchResultsIdx = i; }
+    public int getSearchResultsIndex(){ return _searchResultsIdx; }
+    public void setSearchResultsIndex( int i ){ _searchResultsIdx = i; }
 
-    public SheetTemplate getTemplate()
+    public void setTemplate( Template t )
     {
-        return TEMPLATES[ _templateidx ];
+        _template = t;
     }
 
-    public void setTemplate( int i )
+    public Template getTemplate()
     {
-        _templateidx = i;
+        return _template;
     }
+
+    public String getLoadedFilepath(){ return _loadedFilepath; }
+    public void setLoadedFilepath( String fp ){ _loadedFilepath = fp; }
 
 
     public static class CountryLabelTemplate
@@ -222,4 +252,7 @@ public class Model
             template += "{" + Record.ADDRESS_COUNTRY + "}\n";
         }
     }
+
+
 }
+

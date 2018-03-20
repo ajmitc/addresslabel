@@ -2,6 +2,9 @@ package addresslabel.action;
 
 import javax.swing.Action;
 import javax.swing.AbstractAction;
+
+import java.awt.FileDialog;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -27,10 +30,19 @@ public class SaveCsvAction extends AbstractAction
 
     public void actionPerformed( ActionEvent e )
     {
-        /*
-        if self.loaded_filepath is not None:
-            self.write_csv( self.loaded_filepath )
-            */
+        if( _model.getLoadedFilepath() != null )
+            _model.writeCsv();
+        else
+        {
+            FileDialog fd = _view.getSaveCsvFileDialog();
+            fd.setVisible( true );
+            String filepath = fd.getFile();
+            if( filepath != null )
+            {
+                _model.setLoadedFilepath( filepath );
+                _model.writeCsv();
+            }
+        }
     }
 
 

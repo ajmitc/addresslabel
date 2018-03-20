@@ -1,12 +1,12 @@
 package addresslabel;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-
-import java.util.Map;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.stream.*;
 
 import addresslabel.util.Logger;
 
@@ -45,37 +45,34 @@ public class Record
     };
 
     // These labels do not have corresponding values, but add functionality to existing labels
-    public static final String[] LABEL_IGNORE = {
-        ADDRESS_COUNTRY_NOT_USA
-    };
+    public static final List<String> LABEL_IGNORE = new ArrayList<>();
 
-    public static final Map<String, List<String>> LABEL_MAPPING = new HashMap<>();
+    // Mapping of an imported header to a standard label
+    public static final Map<String, String[]> LABEL_MAPPING = new HashMap<>();
+
+    // Labels values that match USA
+    public static final List<String> USA_VALUES = new ArrayList<>();
+
     public static final List<String> PARSE_ADDR_REGEXPS = new ArrayList<>();
     public static final List<Pattern> PARSE_ADDR_PATTERNS = new ArrayList<>();
+
+
     static {
-        LABEL_MAPPING.put( ADDRESS, new ArrayList<String>() );
-        LABEL_MAPPING.get( ADDRESS ).add( "address" );
+        // Ignored labels
+        LABEL_IGNORE.add( ADDRESS_COUNTRY_NOT_USA );
 
-        LABEL_MAPPING.put( ADDRESS_STREET_1, new ArrayList<String>() );
-        LABEL_MAPPING.get( ADDRESS_STREET_1 ).add( "street" );
-        LABEL_MAPPING.get( ADDRESS_STREET_1 ).add( "street 1" );
+        // Label mapping
+        LABEL_MAPPING.put( ADDRESS,          new String[]{ "address" } );
+        LABEL_MAPPING.put( ADDRESS_STREET_1, new String[]{ "street", "street 1" } );
+        LABEL_MAPPING.put( ADDRESS_STREET_2, new String[]{ "street 2" } );
+        LABEL_MAPPING.put( ADDRESS_CITY,     new String[]{ "city" } );
+        LABEL_MAPPING.put( ADDRESS_STATE,    new String[]{ "state" } );
+        LABEL_MAPPING.put( ADDRESS_ZIP,      new String[]{ "zip", "zipcode" } );
+        LABEL_MAPPING.put( ADDRESS_COUNTRY,  new String[]{ "country" } );
 
-        LABEL_MAPPING.put( ADDRESS_STREET_2, new ArrayList<String>() );
-        LABEL_MAPPING.get( ADDRESS_STREET_2 ).add( "street 2" );
-
-        LABEL_MAPPING.put( ADDRESS_CITY, new ArrayList<String>() );
-        LABEL_MAPPING.get( ADDRESS_CITY ).add( "city" );
-
-        LABEL_MAPPING.put( ADDRESS_STATE, new ArrayList<String>() );
-        LABEL_MAPPING.get( ADDRESS_STATE ).add( "state" );
-
-        LABEL_MAPPING.put( ADDRESS_ZIP, new ArrayList<String>() );
-        LABEL_MAPPING.get( ADDRESS_ZIP ).add( "zip" );
-        LABEL_MAPPING.get( ADDRESS_ZIP ).add( "zipcode" );
-
-        LABEL_MAPPING.put( ADDRESS_COUNTRY, new ArrayList<String>() );
-        LABEL_MAPPING.get( ADDRESS_COUNTRY ).add( "country" );
-
+        USA_VALUES.add( "" );
+        USA_VALUES.add( "usa" );
+        USA_VALUES.add( "united states of america" );
 
         // USA Address (Default)
         PARSE_ADDR_REGEXPS.add( "(?<name>[a-zA-Z \\.]+)\n(?<street1>[0-9a-zA-Z \\.]+)\n(?<city>[a-zA-Z ]+), *(?<state>[A-Z]{2}) +(?<zip>[0-9-]{5,10})" );
@@ -93,39 +90,36 @@ public class Record
     public static final String REGEXP_MATCH_LABEL_TAG = "\\{[a-zA-Z0-9 _]+\\}";
 
 
-    private Logger _logger;
-    private String _defLabelTemplate;
+    private Logger _logger = Logger.getLogger( Record.class );
     private Pattern _regexpLabelTag;
-    private String _template;
-    private String _display;
     private Map<String, String> _data;
-    private boolean _used;  // true if this Record should contain some content, false if it's an empty record
+    // If null, use default label template in app 
+    private String _template;
+    private String _defTemplate;
+    // Displayed text
+    private String _display;
+    // true if this Record should contain some content, false if it's an empty record
+    private boolean _used;
 
-    public Record( String defLabelTemplate )
+
+    /**
+     * @param Map of header to value
+     */
+    public Record( Map<String, String> record, String defTemplate )
     {
-        _logger = Logger.getLogger( "Record" );
-        _defLabelTemplate = defLabelTemplate;
-
         _regexpLabelTag = Pattern.compile( REGEXP_MATCH_LABEL_TAG );
-
-        _template = null; // If null, use default label template in app 
-        _display  = null; // Displayed text override
-
         _data = new HashMap<String, String>();
         clearData();
+        _mapRecord( record );
+        _template = null;
+        _defTemplate = defTemplate;
+        _display  = null;
         _used = false;
     }
 
-    public Record( String defLabelTemplate, List<String> record )
+    public Record( String defTemplate )
     {
-        this( defLabelTemplate, record, null );
-    }
-
-    public Record( String defLabelTemplate, List<String> record, List<String> header )
-    {
-        this( defLabelTemplate );
-        _mapRecord( record, header );
-        _used = true;
+        this( new HashMap<String, String>(), defTemplate );
     }
 
 
@@ -133,20 +127,13 @@ public class Record
     {
         _data.clear();
 
-        // Seed data with un-ignored labels
+        // We still want the standard labels
         for( String lbl: LABELS )
         {
-            boolean shouldIgnore = false;
-            for( String ignore: LABEL_IGNORE )
+            if( !LABEL_IGNORE.contains( lbl ) ) // { FIRST_NAME: "Aaron", LAST_NAME: "Mitchell" }
             {
-                if( ignore.equalsIgnoreCase( lbl ) )
-                {
-                    shouldIgnore = true;
-                    break;
-                }
-            }
-            if( !shouldIgnore )
                 _data.put( lbl, "" );
+            }
         }
     }
 
@@ -160,43 +147,13 @@ public class Record
     }
 
 
-    private boolean _mapRecord( List<String> rawdata, List<String> header )
+    private void _mapRecord( Map<String, String> record )
     {
-        if( header != null )
+        for( String h: record.keySet() )
         {
-            if( _mapRecordListWithHeaderList( rawdata, header ) )
-            {
-                _autoFillInFields();
-                return true;
-            }
+            _data.put( _mapHeader( h ), record.get( h ) );
         }
-        _logger.warning( "Unsupported record format" );
-        return false;
-    }
-
-
-    private boolean _mapRecordListWithHeaderList( List<String> rawdata, List<String> header )
-    {
-        for( int i = 0; i < header.size(); i++ )
-        {
-            String h = header.get( i );
-            if( rawdata.size() <= i )
-            {
-                _logger.warning( "record length (" + rawdata.size() + ") on line " + (i + 1) + " has fewer fields than header (" + header.size() + ")" );
-                continue;
-            }
-            String v = rawdata.get( i ).trim();
-            String key = _mapHeader( h );
-            if( key != null )
-            {
-                _data.put( key.trim().toLowerCase(), v );
-            }
-            else
-            {
-                _data.put( h.trim().toLowerCase(), v );
-            }
-        }
-        return true;
+        _autoFillInFields();
     }
 
 
@@ -205,25 +162,19 @@ public class Record
         header = header.trim();
         for( String lbl: LABELS )
         {
-            if( lbl.equalsIgnoreCase( header ) )
-            {
+            if( lbl.equalsIgnoreCase( header ) || lbl.replace( " ", "_" ).equalsIgnoreCase( header ) )
                 return lbl;
-            }
-            if( lbl.replace( " ", "_" ).equalsIgnoreCase( header ) )
-            {
-                return lbl;
-            }
         }
         for( String key: LABEL_MAPPING.keySet() )
         {
-            List<String> options = LABEL_MAPPING.get( key );
+            String[] options = LABEL_MAPPING.get( key );
             for( String option: options )
             {
                 if( option.equalsIgnoreCase( header ) )
                     return key;
             }
         }
-        return null;
+        return header;
     }
 
 
@@ -330,19 +281,13 @@ public class Record
         {
             if( lbl.equals( ADDRESS_COUNTRY_NOT_USA ) )
             {
-                if( !_data.get( ADDRESS_COUNTRY ).equals( "" ) && !_data.get( ADDRESS_COUNTRY ).equalsIgnoreCase( "usa" ) && !_data.get( ADDRESS_COUNTRY ).equalsIgnoreCase( "united states of america" ) )
-                {
+                if( !USA_VALUES.contains( _data.get( ADDRESS_COUNTRY ).toLowerCase() ) )
                     template = template.replaceAll( "\\{" + lbl + "\\}", _data.get( ADDRESS_COUNTRY ) );
-                }
                 else
-                {
                     template = template.replaceAll( "\\{" + lbl + "\\}", "" );
-                }
             }
             else
-            {
                 template = template.replaceAll( "\\{" + lbl + "\\}", _data.get( lbl ) );
-            }
         }
         template = template.replaceAll( REGEXP_MATCH_LABEL_TAG, "" );
         while( template.indexOf( "  " ) >= 0 )
@@ -357,22 +302,20 @@ public class Record
     public String getDisplay()
     {
         if( _display == null )
-        {
-            _display = _format( _template != null? _template: _defLabelTemplate );
-        }
+            _display = _format( _template != null? _template: _defTemplate );
         return _display;
     }
 
 
-    public void setDisplay( String s )
+    public void setDisplay( String d )
     {
-        _display = s;
+        _display = d;
     }
 
 
     public String getTemplate()
     {
-        return _template != null? _template: _defLabelTemplate;
+        return _template != null? _template: _defTemplate;
     }
 
 
@@ -391,38 +334,17 @@ public class Record
         return _data.get( key );
     }
 
-    public String toString()
-    {
-        StringBuilder sb = new StringBuilder();
-        for( String key: _data.keySet() )
-        {
-            sb.append( key );
-            sb.append( "=" );
-            sb.append( _data.get( key ) );
-            sb.append( ", " );
-        }
-        return sb.toString();
-    }
-
-
-
-    public static boolean shouldIgnore( String lbl )
-    {
-        for( String l: LABEL_IGNORE )
-        {
-            if( l.equalsIgnoreCase( lbl ) )
-                return true;
-        }
-        return false;
-    }
-
-
     public boolean isUsed(){ return _used; }
     public void setUsed( boolean u ){ _used = u; }
 
     public void setDefaultLabelTemplate( String defLabelTemplate )
     {
-        _defLabelTemplate = defLabelTemplate;
+        _defTemplate = defLabelTemplate;
+    }
+
+    public String getString()
+    {
+        return _data.entrySet().stream().map( e -> e.getKey() + "=" + e.getValue() ).collect( Collectors.joining( ", " ) );
     }
 }
 

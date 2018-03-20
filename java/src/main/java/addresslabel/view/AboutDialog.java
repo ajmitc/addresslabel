@@ -34,6 +34,5 @@ public class AboutDialog extends BaseDialog
         setContent( content );
         hideCancel();
     }
-
 }
 
