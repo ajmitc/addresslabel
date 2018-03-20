@@ -13,7 +13,7 @@ import addresslabel.util.Logger;
 
 public class OpenCsvAction extends AbstractAction
 {
-    private Logger _logger;
+    private Logger _logger = Logger.getLogger( OpenCsvAction.class );
     private Model _model;
     private View _view;
 

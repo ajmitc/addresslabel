@@ -19,7 +19,7 @@ public class SaveCsvAction extends AbstractAction
 
     public SaveCsvAction( Model model, View view, boolean saveas )
     {
-        super( saveas? "Save As": "Save" );
+        super( saveas? "Save CSV As": "Save CSV" );
         _model = model;
         _view  = view;
         _saveas = saveas;

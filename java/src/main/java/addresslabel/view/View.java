@@ -54,11 +54,11 @@ public class View
         filemenu.add( new NewAction( _model, this ) );
         filemenu.addSeparator();
         filemenu.add( new OpenCsvAction( _model, this ) );
-        filemenu.add( new SaveAction( _model, this ) );
-        filemenu.add( new SaveAsAction( _model, this ) );
-        filemenu.addSeparator();
         filemenu.add( new SaveCsvAction( _model, this, false ) );
         filemenu.add( new SaveCsvAction( _model, this, true ) );
+        filemenu.addSeparator();
+        filemenu.add( new SaveAction( _model, this, false ) );
+        filemenu.add( new SaveAction( _model, this, true ) );
         filemenu.addSeparator();
         filemenu.add( new ExportToPdfAction( _model, this ) );
         filemenu.add( new PrintAction( _model, this ) );
@@ -92,6 +92,7 @@ public class View
         JToolBar toolbar = new JToolBar();
         toolbar.setFloatable( false );
         toolbar.setRollover( true );
+        toolbar.addSeparator();
         toolbar.add( new NewAction( _model, this ) );
         toolbar.add( new OpenCsvAction( _model, this ) );
         toolbar.add( new SaveCsvAction( _model, this, false ) );
@@ -105,13 +106,15 @@ public class View
         _btnSearchNext = new JButton( "Next" );
         toolbar.add( _tfSearch );
         toolbar.add( _btnSearchNext );
+        toolbar.addSeparator();
 
         _btnNextPage = new JButton( ">" );
         _btnPrevPage = new JButton( "<" );
         _lblPage = new JLabel( "Page 0 of 0" );
-        toolbar.add( _btnNextPage );
         toolbar.add( _btnPrevPage );
+        toolbar.add( _btnNextPage );
         toolbar.add( _lblPage );
+        toolbar.addSeparator();
 
         _sheetpanel = new SheetPanel( _model, this );
 
@@ -129,7 +132,7 @@ public class View
     {
         int recordsPerPage = _model.getRecordsPerPage();
         _sheetpanel.display( _model.getRecords().subList( _model.getPage() * recordsPerPage, _model.getRecords().size() ) );
-        _lblPage.setText( "Page " + _model.getPage() + 1 + " of " + _model.getNumPagesToFitRecords() );
+        _lblPage.setText( "Page " + (_model.getPage() + 1) + " of " + _model.getNumPagesToFitRecords() );
     }
 
     public JFrame getFrame(){ return _frame; }

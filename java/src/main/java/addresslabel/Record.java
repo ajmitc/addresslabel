@@ -223,7 +223,7 @@ public class Record
 
         // Check if OTHER ADDRESS field(s) are not empty
         address = get( "other address" );
-        if( !address.equals( "" ) )
+        if( address != null && !address.equals( "" ) )
         {
             if( _parseAddressString( address ) )
                 return;
