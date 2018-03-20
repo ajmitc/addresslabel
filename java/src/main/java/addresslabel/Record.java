@@ -107,6 +107,7 @@ public class Record
      */
     public Record( Map<String, String> record, String defTemplate )
     {
+        _used = false;
         _regexpLabelTag = Pattern.compile( REGEXP_MATCH_LABEL_TAG );
         _data = new HashMap<String, String>();
         clearData();
@@ -114,7 +115,6 @@ public class Record
         _template = null;
         _defTemplate = defTemplate;
         _display  = null;
-        _used = false;
     }
 
     public Record( String defTemplate )
@@ -154,6 +154,7 @@ public class Record
             _data.put( _mapHeader( h ), record.get( h ) );
         }
         _autoFillInFields();
+        _used = _data.size() > 0;
     }
 
 
