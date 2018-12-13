@@ -1,0 +1,41 @@
+
+apply plugin: 'java'
+
+version = "1.0.0"
+
+repositories {
+    flatDir{
+        dirs{
+            "lib"
+        }
+    }
+
+    mavenCentral()
+}
+
+dependencies {
+    compile "com.opencsv:opencsv:4.0"
+    compile fileTree( dir: "lib", include: ["*.jar"] )
+}
+
+task dist(type: Jar) {
+    manifest {
+        attributes (
+            'Implementation-Title': 'Address Label Easy Button',
+            'Implementation-Version': version,
+            "Class-Path": configurations.compile.collect { it.getName() }.join(' '),
+            'Main-Class': 'addresslabel.Main'
+        )
+    } 
+    baseName = "AddressLabelEasyButton"
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+
+task run(type: Exec) {
+    dependsOn build
+    executable "java"
+    args "-jar", "build/libs/AddressLabelEasyButton-1.0.0.jar"
+}
+
