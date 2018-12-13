@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.logging.*;
 
 public class RecordComparator {
+    private static Logger logger = Logger.getLogger( RecordComparator.class.getName() );
 
     public static List<RecordDiff> getDiffs( List<Record> records1, List<Record> records2 ) {
         List<RecordDiff> diffs = new ArrayList<>();
