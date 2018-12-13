@@ -70,6 +70,7 @@ public class Model
         return false;
     }
 
+
     /**
      * Load a CSV Contact list.  The first row must be a header, the delimiter must be a comma ',' and record delimiter must be newline
      */
@@ -79,31 +80,7 @@ public class Model
 
         try
         {
-            CSVReader reader = new CSVReader( new FileReader( filepath ) );
-            List<String> header = null;
-            String[] entry;
-            while( (entry = reader.readNext()) != null )
-            {
-                List<String> fields = Arrays.asList( entry );
-                if( header == null )
-                    header = fields;
-                else
-                {
-                    Map<String, String> data = Util.zipToMap( header, fields );
-                    Record record = new Record( data, _defLabelTemplate );
-                    _records.add( record );
-
-                    // attempt to set a different country label template, if appropriate
-                    for( CountryLabelTemplate clt: _countryLabelTemplates )
-                    {
-                        if( clt.matches( record.get( Record.ADDRESS_COUNTRY ) ) )
-                        {
-                            record.setDefaultLabelTemplate( clt.template );
-                            break;
-                        }
-                    }
-                }
-            }
+            _records = getRecordsFromCsv( filepath );
 
             // Add Record objects to fill the page
             int recordsPerPage = getTemplate().getRows() * getTemplate().getColumns();
@@ -121,6 +98,44 @@ public class Model
             e.printStackTrace();
             return false;
         }
+    }
+
+
+    /**
+     * Load a CSV Contact list.  The first row must be a header, the delimiter must be a comma ',' and record delimiter must be newline
+     */
+    public List<Record> getRecordsFromCsv( String filepath ) throws Exception
+    {
+        _logger.info( "Loading " + filepath );
+
+        List<Record> records = new ArrayList<>();
+        CSVReader reader = new CSVReader( new FileReader( filepath ) );
+        List<String> header = null;
+        String[] entry;
+        while( (entry = reader.readNext()) != null )
+        {
+            List<String> fields = Arrays.asList( entry );
+            if( header == null )
+                header = fields;
+            else
+            {
+                Map<String, String> data = Util.zipToMap( header, fields );
+                Record record = new Record( data, _defLabelTemplate );
+                records.add( record );
+
+                // attempt to set a different country label template, if appropriate
+                for( CountryLabelTemplate clt: _countryLabelTemplates )
+                {
+                    if( clt.matches( record.get( Record.ADDRESS_COUNTRY ) ) )
+                    {
+                        record.setDefaultLabelTemplate( clt.template );
+                        break;
+                    }
+                }
+            }
+        }
+
+        return records;
     }
 
     public boolean writeCsv()

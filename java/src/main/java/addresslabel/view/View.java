@@ -60,6 +60,8 @@ public class View
         filemenu.add( new SaveAction( _model, this, false ) );
         filemenu.add( new SaveAction( _model, this, true ) );
         filemenu.addSeparator();
+        filemenu.add( new UpdateRecordsAction( _model, this ) );
+        filemenu.addSeparator();
         filemenu.add( new ExportToPdfAction( _model, this ) );
         filemenu.add( new PrintAction( _model, this ) );
         filemenu.addSeparator();
