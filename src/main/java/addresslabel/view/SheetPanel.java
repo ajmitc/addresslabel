@@ -15,7 +15,7 @@ import addresslabel.template.Template;
 
 public class SheetPanel extends JPanel
 {
-    public static final Color HIGHLIGHT_COLOR = Color.RED;
+    public static final Color HIGHLIGHT_COLOR = Color.YELLOW;
 
     private Logger _logger;
     private Model _model;
@@ -45,7 +45,7 @@ public class SheetPanel extends JPanel
             }
         }
 
-        _origBg = (_labelPanels.size() > 0)? _labelPanels.get( 0 ).getBackground(): Color.WHITE;
+        _origBg = Color.WHITE; //(_labelPanels.size() > 0)? _labelPanels.get( 0 ).getBackground(): Color.WHITE;
     }
 
     public void reset()
@@ -79,13 +79,14 @@ public class SheetPanel extends JPanel
     public void highlightLabelWithRecord( Record record )
     {
         if( _highlighted != null )
-            _highlighted.setBackground( _origBg );
+            _highlighted.setLabelBackground( _origBg );
         for( LabelPanel txtlabel: _labelPanels )
         {
             if( txtlabel.getRecord() == record )
             {
-                txtlabel.setBackground( HIGHLIGHT_COLOR );
+                txtlabel.setLabelBackground( HIGHLIGHT_COLOR );
                 _highlighted = txtlabel;
+                break;
             }
         }
     }

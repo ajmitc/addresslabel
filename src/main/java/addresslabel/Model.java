@@ -192,9 +192,10 @@ public class Model
     }
 
 
-    public boolean loadProject() {
+    public boolean loadProject( String projectFilepath ) {
         try {
-            BufferedReader reader = new BufferedReader( new FileReader( _loadedProjectFilepath ) );
+            clearRecords();
+            BufferedReader reader = new BufferedReader( new FileReader( projectFilepath ) );
             Record record = null;
             boolean readFields = false;
             boolean readTemplate = false;
@@ -227,9 +228,10 @@ public class Model
                     }
                 }
                 else if( readTemplate ) {
-                    record.setTemplate( record.getTemplate() + line );
+                    record.setTemplate( record.getTemplate() + line + "\n" );
                 }
             }
+            _loadedFilepath = projectFilepath;
             return true;
         }
         catch( Exception ex ) {
@@ -239,6 +241,10 @@ public class Model
     }
 
 
+    public void addPageOfEmptyRecords()
+    {
+        addEmptyRecords( getRecordsPerPage() );
+    }
 
     public void addEmptyRecords( int num )
     {
@@ -260,7 +266,6 @@ public class Model
 
     public void clearRecords() {
         _records.clear();
-        addEmptyRecords( getRecordsPerPage() );
         _loadedFilepath = null;
         _loadedProjectFilepath = null;
         _page = 0;

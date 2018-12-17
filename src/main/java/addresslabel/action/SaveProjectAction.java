@@ -9,13 +9,13 @@ import java.awt.event.ActionEvent;
 import addresslabel.Model;
 import addresslabel.view.View;
 
-public class SaveAction extends AbstractAction
+public class SaveProjectAction extends AbstractAction
 {
     private Model _model;
     private View _view;
     private boolean _saveAs;
 
-    public SaveAction( Model model, View view, boolean saveas )
+    public SaveProjectAction( Model model, View view, boolean saveas )
     {
         super( saveas? "Save Project As": "Save Project" );
         putValue( Action.SHORT_DESCRIPTION, "Not yet implemented" );

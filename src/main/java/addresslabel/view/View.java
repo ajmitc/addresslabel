@@ -16,9 +16,6 @@ import java.awt.BorderLayout;
 import java.io.File;
 import java.io.FilenameFilter;
 
-import java.util.List;
-import java.util.ArrayList;
-
 import addresslabel.Model;
 import addresslabel.action.*;
 import addresslabel.template.Template;
@@ -58,8 +55,9 @@ public class View
         JMenu filemenu = new JMenu( "File" );
         filemenu.add( new NewAction( _model, this ) );
         filemenu.addSeparator();
-        filemenu.add( new SaveAction( _model, this, false ) );
-        filemenu.add( new SaveAction( _model, this, true ) );
+        filemenu.add( new OpenProjectAction( _model, this ) );
+        filemenu.add( new SaveProjectAction( _model, this, false ) );
+        filemenu.add( new SaveProjectAction( _model, this, true ) );
         filemenu.addSeparator();
         filemenu.add( new AddPageAction( _model, this ) );
         filemenu.addSeparator();

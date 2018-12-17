@@ -141,7 +141,7 @@ public class Record
      */
     public boolean search( String text )
     {
-        return _display.toLowerCase().indexOf( text.toLowerCase() ) >= 0;
+        return getDisplay().toLowerCase().indexOf( text.toLowerCase() ) >= 0;
     }
 
 

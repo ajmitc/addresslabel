@@ -186,6 +186,9 @@ public class LabelPanel extends JPanel implements ActionListener
         ((HTMLDocument) _tpLabel.getDocument()).getStyleSheet().addRule( bodyRule );
     }
 
+    public void setLabelBackground( Color color ) {
+        _tpLabel.setBackground( color );
+    }
 
 
     public Record getRecord()
