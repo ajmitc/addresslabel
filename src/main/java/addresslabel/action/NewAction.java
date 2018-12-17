@@ -23,7 +23,8 @@ public class NewAction extends AbstractAction
 
     public void actionPerformed( ActionEvent e )
     {
-
+        _model.clearRecords();
+        _view.refresh();
     }
 }
 

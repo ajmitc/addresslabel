@@ -98,18 +98,16 @@ public class Record
     private String _defTemplate;
     // Displayed text
     private String _display;
-    // true if this Record should contain some content, false if it's an empty record
-    private boolean _used;
 
 
     /**
-     * @param Map of header to value
+     * @param record Map of header to value
+     * @param defTemplate String defining the default template to use for this record
      */
     public Record( Map<String, String> record, String defTemplate )
     {
-        _used = false;
         _regexpLabelTag = Pattern.compile( REGEXP_MATCH_LABEL_TAG );
-        _data = new HashMap<String, String>();
+        _data = new HashMap<>();
         clearData();
         _mapRecord( record );
         _template = null;
@@ -119,7 +117,7 @@ public class Record
 
     public Record( String defTemplate )
     {
-        this( new HashMap<String, String>(), defTemplate );
+        this( new HashMap<>(), defTemplate );
     }
 
 
@@ -154,7 +152,6 @@ public class Record
             _data.put( _mapHeader( h ), record.get( h ) );
         }
         _autoFillInFields();
-        _used = _data.size() > 0;
     }
 
 
@@ -303,7 +300,7 @@ public class Record
     public String getDisplay()
     {
         if( _display == null )
-            _display = _format( _template != null? _template: _defTemplate );
+            _display = isUsed()? _format( _template != null? _template: _defTemplate ): "";
         return _display;
     }
 
@@ -335,8 +332,37 @@ public class Record
         return _data.get( key );
     }
 
-    public boolean isUsed(){ return _used; }
-    public void setUsed( boolean u ){ _used = u; }
+    /**
+     * Return the values of this Record in a String[] with the order given by header
+     * @param header
+     * @return
+     */
+    public String[] getValues( List<String> header ) {
+        String[] ret = new String[ header.size() ];
+        int i = 0;
+        for( String h: header ) {
+            if( _data.containsKey( h ) ) {
+                ret[ i++ ] = _data.get( h );
+            }
+            else {
+                ret[ i++ ] = "";
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Determines if this record has non-default data
+     * @return
+     */
+    public boolean isUsed(){
+        for( String key: _data.keySet() ) {
+            if( !key.equals( ADDRESS_COUNTRY ) && _data.get( key ) != null && !_data.get( key ).equals( "" ) ) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public void setDefaultLabelTemplate( String defLabelTemplate )
     {

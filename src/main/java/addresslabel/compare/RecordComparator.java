@@ -3,6 +3,7 @@ package addresslabel.compare;
 import addresslabel.Record;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,10 +25,12 @@ public class RecordComparator {
                 if( score >= 1.0 ) {
                     // exact match, skip it
                     foundExactMatch = true;
+                    logger.info( "Found exact match:\n" + r1.getDisplay() + "\n\n" + r2.getDisplay() );
                     break;
                 }
                 if( score > .5 ) {
                     matches.add( new RecordDiff( r1, r2, DiffType.Updated, score ) );
+                    logger.info( "Found match (" + score + "):\n" + r1.getDisplay() + "\n\n" + r2.getDisplay() );
                 }
             }
 
@@ -53,7 +56,9 @@ public class RecordComparator {
 
                 // Filter out all matches that are not within 10% of the best match
                 double bestScore = matches.get( 0 ).getComparisonScore();
+                logger.info( "Filtering out matches more than 0.1 less than " + bestScore );
                 matches = matches.stream().filter( rd -> bestScore - rd.getComparisonScore() > 0.1 ).collect( Collectors.toList() );
+                logger.info( "   " + matches.size() + " matches left" );
 
                 for( RecordDiff rm: matches ) {
                     diffs.add( rm );
@@ -82,6 +87,38 @@ public class RecordComparator {
             // No RecordDiff for r2, it must be new
             diffs.add( new RecordDiff( null, r2, DiffType.Added, 0.0 ) );
         }
+
+        int numUpdated = 0;
+        int numRemoved = 0;
+        int numAdded = 0;
+        for( DiffType diffType: Arrays.asList( DiffType.Updated, DiffType.Removed, DiffType.Added ) ) {
+            for( RecordDiff recordDiff : diffs ) {
+                if( recordDiff.getDiffType() == diffType ) {
+                    if( diffType == DiffType.Updated ) {
+                        numUpdated += 1;
+                        logger.info( "UPDATED" );
+                        logger.info( "   Record 1: " + recordDiff.getRecord1().getDisplay() );
+                        logger.info( "   Record 2: " + recordDiff.getRecord2().getDisplay() );
+                        logger.info( "   Score: " + recordDiff.getComparisonScore() );
+                    }
+                    else if( diffType == DiffType.Added ) {
+                        numAdded += 1;
+                        logger.info( "ADDED" );
+                        logger.info( "   Record 1: None" );
+                        logger.info( "   Record 2: " + recordDiff.getRecord2().getDisplay() );
+                    }
+                    else if( diffType == DiffType.Removed ) {
+                        numRemoved += 1;
+                        logger.info( "REMOVED" );
+                        logger.info( "   Record 1: " + recordDiff.getRecord1().getDisplay() );
+                        logger.info( "   Record 2: None" );
+                    }
+                }
+            }
+        }
+        logger.info( "Num Updated: " + numUpdated );
+        logger.info( "Num Removed: " + numRemoved );
+        logger.info( "Num Added:   " + numAdded   );
 
         return diffs;
     }
@@ -127,3 +164,4 @@ public class RecordComparator {
         return score;
     }
 }
+

@@ -208,7 +208,7 @@ public class LabelPanel extends JPanel implements ActionListener
     public void refresh( boolean clearDisplay )
     {
         _tpLabel.setText( "" );
-        if( _record != null )
+        if( _record != null && _record.isUsed() )
         {
             if( clearDisplay )
                 _record.setDisplay( null );

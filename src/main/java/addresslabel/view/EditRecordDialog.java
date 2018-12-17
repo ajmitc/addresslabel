@@ -6,8 +6,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JScrollPane;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
+import java.awt.*;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -27,7 +26,7 @@ public class EditRecordDialog extends BaseDialog
 
     public EditRecordDialog( JFrame parent, Record record )
     {
-        super( parent, "Edit Record", true, 400, 400 );
+        super( parent, "Edit Record", true, 500, 400 );
         _record = record;
 
         JPanel content = new JPanel( new BorderLayout() );
@@ -49,17 +48,30 @@ public class EditRecordDialog extends BaseDialog
             }
         }
 
-        _fields = new HashMap<JTextField, JTextField>();
-        JPanel fieldspanel = new JPanel( new GridLayout( keys.size(), 2 ) );
+        _fields = new HashMap<>();
+        //JPanel fieldspanel = new JPanel( new GridLayout( keys.size(), 2 ) );
+        JPanel fieldspanel = new JPanel( new GridBagLayout() );
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.BOTH;
+        c.anchor = GridBagConstraints.PAGE_START;
+        c.ipadx = 4;
+        c.ipady = 4;
+        c.weightx = 1.0;
+        c.weighty = 1.0;
         for( int i = 0; i < keys.size(); ++i )
         {
             String key = keys.get( i );
             if( Record.LABEL_IGNORE.contains( key ) )
                 continue;
             JTextField keyentry = new JTextField( key );
-            fieldspanel.add( keyentry );
+            keyentry.setEditable( false );
+            keyentry.setFocusable( false );
+            c.gridx = 0;
+            c.gridy = i;
+            fieldspanel.add( keyentry, c );
             JTextField valentry = new JTextField( _record.getData().get( key ) );
-            fieldspanel.add( valentry );
+            c.gridx = 1;
+            fieldspanel.add( valentry, c );
             _fields.put( keyentry, valentry );
         }
 

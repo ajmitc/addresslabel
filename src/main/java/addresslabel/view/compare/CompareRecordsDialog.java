@@ -51,21 +51,6 @@ public class CompareRecordsDialog extends BaseDialog
         removedPanel.setLayout( new BoxLayout( removedPanel, BoxLayout.PAGE_AXIS ) );
         addedPanel.setLayout( new BoxLayout( addedPanel, BoxLayout.PAGE_AXIS ) );
 
-        JPanel updatedSummaryPanel = new JPanel();
-        JLabel lblUpdatedSummary = new JLabel( "<html>These records exist in both the active CSV and the updated CSV, but they contain differences.  For each, choose how to handle the updates.</html>" );
-        updatedSummaryPanel.add( lblUpdatedSummary );
-        updatedPanel.add( updatedSummaryPanel );
-
-        JPanel removedSummaryPanel = new JPanel();
-        JLabel lblRemovedSummary = new JLabel( "<html>These records exist in the active CSV, but not in the updated CSV.  Click Remove Record to remove the record from the active CSV.</html>" );
-        removedSummaryPanel.add( lblRemovedSummary );
-        removedPanel.add( removedSummaryPanel );
-
-        JPanel addedSummaryPanel = new JPanel();
-        JLabel lblAddedSummary = new JLabel( "<html>These records DO NOT exist in the active CSV, but are found in the updated CSV.  Click Add Record to add the record to the active CSV.</html>" );
-        addedSummaryPanel.add( lblAddedSummary );
-        addedPanel.add( addedSummaryPanel );
-
         int updatedCnt = 0;
         int addedCnt = 0;
         int removedCnt = 0;
@@ -109,10 +94,27 @@ public class CompareRecordsDialog extends BaseDialog
             removedPanel.add( lbl );
         }
 
+
+        JPanel updatedTabPanel = new JPanel( new BorderLayout() );
+        JPanel addedTabPanel   = new JPanel( new BorderLayout() );
+        JPanel removedTabPanel = new JPanel( new BorderLayout() );
+
+        JLabel lblUpdatedSummary = new JLabel( "<html>Found " + updatedCnt + " Records<br/>These records exist in both the active CSV and the updated CSV, but they contain differences.<br/>For each, choose how to handle the updates.</html>" );
+        updatedTabPanel.add( lblUpdatedSummary, BorderLayout.NORTH );
+        updatedTabPanel.add( new JScrollPane( updatedPanel ), BorderLayout.CENTER );
+
+        JLabel lblAddedSummary = new JLabel( "<html>These records DO NOT exist in the active CSV, but are found in the updated CSV.  Click Add Record to<br/>add the record to the active CSV.</html>" );
+        addedTabPanel.add( lblAddedSummary, BorderLayout.NORTH );
+        addedTabPanel.add( new JScrollPane( addedPanel ), BorderLayout.CENTER );
+
+        JLabel lblRemovedSummary = new JLabel( "<html>These records exist in the active CSV, but not in the updated CSV.  Click Remove Record to remove<br/>the record from the active CSV.</html>" );
+        removedTabPanel.add( lblRemovedSummary, BorderLayout.NORTH );
+        removedTabPanel.add( new JScrollPane( removedPanel ), BorderLayout.CENTER );
+
         JTabbedPane tabPanel = new JTabbedPane();
-        tabPanel.addTab( "Updated", null, new JScrollPane( updatedPanel ), "Updated Records" );
-        tabPanel.addTab( "Removed", null, new JScrollPane( removedPanel ), "Removed Records" );
-        tabPanel.addTab( "Added",   null, new JScrollPane( addedPanel   ), "Added Records"   );
+        tabPanel.addTab( "Updated", null, updatedTabPanel, "Updated Records" );
+        tabPanel.addTab( "Removed", null, removedTabPanel, "Removed Records" );
+        tabPanel.addTab( "Added",   null, addedTabPanel  , "Added Records"   );
 
 
         content.add( tabPanel, BorderLayout.CENTER );

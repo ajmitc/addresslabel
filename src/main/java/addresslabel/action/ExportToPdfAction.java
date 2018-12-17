@@ -1,7 +1,6 @@
 package addresslabel.action;
 
-import javax.swing.Action;
-import javax.swing.AbstractAction;
+import javax.swing.*;
 import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -50,6 +49,9 @@ public class ExportToPdfAction extends AbstractAction
             return;
         }
 
+        // Open warning box to print correctly
+        JOptionPane.showMessageDialog( _view.getFrame(), "Be sure to disable Page Scaling when printing PDF", "Print Information", JOptionPane.INFORMATION_MESSAGE );
+
         if( Desktop.isDesktopSupported() )
         {
             try 
@@ -57,7 +59,7 @@ public class ExportToPdfAction extends AbstractAction
                 File myFile = new File( fn );
                 Desktop.getDesktop().open( myFile );
             }
-            catch( IllegalArgumentException iae ) // if the specified file dosen't exist 
+            catch( IllegalArgumentException iae ) // if the specified file doesn't exist
             {
                 iae.printStackTrace();
             }

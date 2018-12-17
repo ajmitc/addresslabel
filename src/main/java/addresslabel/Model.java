@@ -1,22 +1,19 @@
 package addresslabel;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
 
 import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
+import java.io.FileWriter;
+import java.util.*;
 
 import addresslabel.template.*;
 import addresslabel.util.Logger;
 import addresslabel.util.SearchResult;
 import addresslabel.util.Util;
-import addresslabel.util.CSVUtils;
 
 
 public class Model
@@ -34,6 +31,7 @@ public class Model
     private Template _template; // selected template
     private List<Record> _records;
     private String _loadedFilepath;
+    private String _loadedProjectFilepath;
     private int _page;
     private String _defLabelTemplate;
     private List<SearchResult> _searchResults;
@@ -46,6 +44,7 @@ public class Model
         _template = TEMPLATES[ 0 ];
         _records = new ArrayList<>();
         _loadedFilepath = null;
+        _loadedProjectFilepath = null;
         _page = 0;  // Currently displayed page
 
         // default format template
@@ -58,8 +57,10 @@ public class Model
         _searchResults = new ArrayList<>();
         _searchResultsIdx = 0;
 
-        _countryLabelTemplates = new ArrayList<CountryLabelTemplate>();
+        _countryLabelTemplates = new ArrayList<>();
         _countryLabelTemplates.add( new GermanyLabelTemplate() );
+
+        addEmptyRecords( getRecordsPerPage() );
     }
 
     public boolean loadContactsFromFile( String filename )
@@ -140,7 +141,100 @@ public class Model
 
     public boolean writeCsv()
     {
-        // Write to _loadedFilepath
+        try {
+            _logger.info( "Writing CSV file: " + _loadedFilepath );
+            BufferedWriter writer = new BufferedWriter( new FileWriter( _loadedFilepath ) );
+            CSVWriter csvWriter = new CSVWriter( writer );
+            // Write the header
+            Set<String> headerSet = _records.size() > 0? _records.get( 0 ).getData().keySet(): new HashSet<>();
+            List<String> header = new ArrayList<>( headerSet );
+            csvWriter.writeNext( header.toArray( new String[0] ) );
+            // Write the values
+            for( Record record: _records ) {
+                String[] fields = record.getValues( header );
+                csvWriter.writeNext( fields );
+            }
+            csvWriter.close();
+            _logger.info( "   Wrote " + _records.size() + " records" );
+            return true;
+        }
+        catch( Exception ex ) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
+
+    public boolean writeProject() {
+        try {
+            BufferedWriter writer = new BufferedWriter( new FileWriter( _loadedProjectFilepath ) );
+            for( Record record: _records ) {
+                writer.write( "::Record::\n" );
+                writer.write( "::data::\n" );
+                for( String key: record.getData().keySet() ) {
+                    writer.write( "[" );
+                    writer.write( key );
+                    writer.write( "] " );
+                    writer.write( record.getData().get( key ) );
+                    writer.write( "\n" );
+                }
+                writer.write( "::template::\n" );
+                writer.write( record.getTemplate() );
+                writer.write( "\n" );
+            }
+            writer.close();
+            return true;
+        }
+        catch( Exception ex ) {
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
+
+    public boolean loadProject() {
+        try {
+            BufferedReader reader = new BufferedReader( new FileReader( _loadedProjectFilepath ) );
+            Record record = null;
+            boolean readFields = false;
+            boolean readTemplate = false;
+            String fieldKey = null;
+            String fieldValue = null;
+            String line;
+            while( (line = reader.readLine()) != null ) {
+                if( line.equals( "::Record::" ) ) {
+                    record = new Record( _defLabelTemplate );
+                    _records.add( record );
+                }
+                else if( line.equals( "::data::" ) ) {
+                    readFields = true;
+                    readTemplate = false;
+                }
+                else if( line.equals( "::template::" ) ) {
+                    readFields = false;
+                    readTemplate = true;
+                    record.setTemplate( "" );
+                }
+                else if( readFields ) {
+                    if( line.startsWith( "[" ) ) {
+                        fieldKey = line.substring( 1, line.indexOf( "]" ) ).trim();
+                        fieldValue = line.substring( line.indexOf( "]" ) + 1 ).trim();
+                        record.getData().put( fieldKey, fieldValue );
+                    }
+                    else {
+                        fieldValue = record.getData().get( fieldKey );
+                        record.getData().put( fieldKey, fieldValue + "\n" + line.trim() );
+                    }
+                }
+                else if( readTemplate ) {
+                    record.setTemplate( record.getTemplate() + line );
+                }
+            }
+            return true;
+        }
+        catch( Exception ex ) {
+            ex.printStackTrace();
+        }
         return false;
     }
 
@@ -162,6 +256,14 @@ public class Model
                 used.add( r );
         }
         return used; 
+    }
+
+    public void clearRecords() {
+        _records.clear();
+        addEmptyRecords( getRecordsPerPage() );
+        _loadedFilepath = null;
+        _loadedProjectFilepath = null;
+        _page = 0;
     }
 
     public void sortRecords( final String recordKey )
@@ -208,7 +310,11 @@ public class Model
 
     public int getNumPagesToFitRecords()
     {
-        return (int) Math.ceil( (float) _records.size() / (float) getRecordsPerPage() );
+        int pages = (int) Math.ceil( (float) _records.size() / (float) getRecordsPerPage() );
+        if( pages == 0 ) {
+            pages = 1;
+        }
+        return pages;
     }
 
     public String getDefaultTemplate(){ return _defLabelTemplate; }
@@ -229,6 +335,9 @@ public class Model
 
     public String getLoadedFilepath(){ return _loadedFilepath; }
     public void setLoadedFilepath( String fp ){ _loadedFilepath = fp; }
+
+    public String getLoadedProjectFilepath(){ return _loadedProjectFilepath; }
+    public void setLoadedProjectFilepath( String fp ){ _loadedProjectFilepath = fp; }
 
 
     public static class CountryLabelTemplate
