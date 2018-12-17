@@ -120,6 +120,31 @@ public class Record
         this( new HashMap<>(), defTemplate );
     }
 
+    /**
+     * Two records are equal if their data is equal.
+     * @param other
+     * @return
+     */
+    public boolean equals( final Record other ) {
+        for( String key: _data.keySet() ) {
+            if( !other.getData().containsKey( key ) ) {
+                return false;
+            }
+            String myValue = _data.get( key );
+            String otherValue = other.getData().get( key );
+            if( !myValue.equals( otherValue ) ) {
+                return false;
+            }
+        }
+
+        for( String key: other.getData().keySet() ) {
+            if( !_data.containsKey( key ) ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     public void clearData()
     {

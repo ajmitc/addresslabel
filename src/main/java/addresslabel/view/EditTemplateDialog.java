@@ -33,7 +33,7 @@ public class EditTemplateDialog extends BaseDialog
      */
     public EditTemplateDialog( Model model, View view, Record record )
     {
-        super( view.getFrame(), "Edit Template", true, 400, 600 );
+        super( view.getFrame(), "Edit Template", true, 450, 600 );
         _model = model;
         _view = view;
         _record = record;
@@ -42,7 +42,7 @@ public class EditTemplateDialog extends BaseDialog
 
         JPanel content = new JPanel( new BorderLayout() );
 
-        JLabel lblHelpTxt = new JLabel( "<html><center>Edit the template below.<br/>Click Apply to change only the selected label.  Click Apply to All to change all label templates.</html>" );
+        JLabel lblHelpTxt = new JLabel( "<html><center>Edit the template below.<br/>Words/phrases within curly-braces will be substituted with the value of that field.<br/>Words/phrases outside curly-braces will be visible in the label as is.</html>" );
         content.add( lblHelpTxt, BorderLayout.NORTH );
 
         JPanel templPanel = new JPanel( new BorderLayout() );
@@ -65,7 +65,7 @@ public class EditTemplateDialog extends BaseDialog
         {
             final String lbltxt = Record.LABELS[ i ];
 
-            JLabel lbl = new JLabel( lbltxt );
+            JLabel lbl = new JLabel( "{" + lbltxt + "}" );
             c.gridx = 0;
             c.gridy = i;
             lblpanel.add( lbl, c );
