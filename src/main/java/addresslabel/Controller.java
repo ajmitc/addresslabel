@@ -26,10 +26,11 @@ public class Controller
             {
                 if( _model.getRecords().size() == 0 )
                     return;
-                _model.getSearchResults().clear();
-                _model.setSearchResultsIndex( 0 );
+                clearSearchResults();
                 String searchtext = _view.getTfSearch().getText();
-                _logger.debug( "Searching for '" + searchtext + "'" );
+                if( searchtext.equals( "" ) )
+                    return;
+                //_logger.debug( "Searching for '" + searchtext + "'" );
                 for( int idx = 0; idx < _model.getRecords().size(); ++idx )
                 {
                     Record record = _model.getRecords().get( idx );
@@ -70,6 +71,13 @@ public class Controller
         _view.displayPage();
     }
 
+    public void clearSearchResults() {
+        _model.getSearchResults().clear();
+        _model.setSearchResultsIndex( 0 );
+        _view.getSheetPanel().highlightLabelWithRecord( null );
+
+    }
+
 
     public void findSearchNext()
     {
@@ -79,7 +87,7 @@ public class Controller
         SearchResult sr = _model.getSearchResults().get( _model.getSearchResultsIndex() );
         // Get page
         int recordsPerPage = _model.getRecordsPerPage();
-        int page = (int) (sr.getIndex() / recordsPerPage);
+        int page = (sr.getIndex() / recordsPerPage);
         _model.setPage( page );
         _view.displayPage();
         _view.getSheetPanel().highlightLabelWithRecord( sr.getRecord() );

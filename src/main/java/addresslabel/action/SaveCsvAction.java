@@ -9,10 +9,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 import addresslabel.Model;
+import addresslabel.util.Logger;
 import addresslabel.view.View;
 
 public class SaveCsvAction extends AbstractAction
 {
+    private static Logger logger = Logger.getLogger( SaveCsvAction.class );
     private Model _model;
     private View _view;
     private boolean _saveas;
@@ -30,7 +32,7 @@ public class SaveCsvAction extends AbstractAction
 
     public void actionPerformed( ActionEvent e )
     {
-        if( _model.getLoadedFilepath() != null )
+        if (_model.getLoadedFilepath() != null && !_saveas)
             _model.writeCsv();
         else
         {
@@ -44,29 +46,5 @@ public class SaveCsvAction extends AbstractAction
             }
         }
     }
-
-
-    /*
-    def saveas( self ):
-        filepath = filedialog.asksaveasfilename( parent=self, defaultextension="csv", initialdir=".", title="Save Contact List", filetypes=(("Comma-Separated-Values", "*.csv"), ("All Files", "*.*")) )
-        if filepath:
-            self.write_csv( filepath )
-            self.loaded_filepath = filepath
-
-
-    def write_csv( self, filepath ):
-        self.log.debug( "Saving csv to %s" % filepath )
-        with open( filepath, 'wb' ) as csvfile:
-            csvwriter = csv.writer( csvfile, delimiter=',' )
-            header = None
-            for record in self.records:
-                if header is None:
-                    header = record.data.keys()
-                    csvwriter.writerow( header )
-                    //self.log.debug( str(header) )
-                row = [ record.data[ h ] if h in record.data.keys() else "" for h in header ]
-                csvwriter.writerow( row )
-                //self.log.debug( str(row) )
-    */
 }
 

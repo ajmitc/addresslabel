@@ -16,9 +16,6 @@ import java.awt.BorderLayout;
 import java.io.File;
 import java.io.FilenameFilter;
 
-import java.util.List;
-import java.util.ArrayList;
-
 import addresslabel.Model;
 import addresslabel.action.*;
 import addresslabel.template.Template;
@@ -39,6 +36,7 @@ public class View
     private SheetPanel _sheetpanel;
 
     private FileDialog _fileDialog;
+    private FileDialog _projectFileDialog;
 
     public View( Model model, JFrame frame )
     {
@@ -50,22 +48,35 @@ public class View
         _fileDialog.setDirectory( System.getProperty( "os.name" ).toLowerCase().startsWith( "win" )? "C:\\": "~" );
         _fileDialog.setFile( "*.csv" );
 
+        _projectFileDialog = new FileDialog( _frame, "Choose a file", FileDialog.LOAD );
+        _projectFileDialog.setDirectory( System.getProperty( "os.name" ).toLowerCase().startsWith( "win" )? "C:\\": "~" );
+        _projectFileDialog.setFile( "*.sav" );
+
         JMenu filemenu = new JMenu( "File" );
         filemenu.add( new NewAction( _model, this ) );
         filemenu.addSeparator();
-        filemenu.add( new OpenCsvAction( _model, this ) );
-        filemenu.add( new SaveCsvAction( _model, this, false ) );
-        filemenu.add( new SaveCsvAction( _model, this, true ) );
-        filemenu.addSeparator();
-        filemenu.add( new SaveAction( _model, this, false ) );
-        filemenu.add( new SaveAction( _model, this, true ) );
-        filemenu.addSeparator();
-        filemenu.add( new UpdateRecordsAction( _model, this ) );
+        filemenu.add( new OpenProjectAction( _model, this ) );
+        filemenu.add( new SaveProjectAction( _model, this, false ) );
+        filemenu.add( new SaveProjectAction( _model, this, true ) );
         filemenu.addSeparator();
         filemenu.add( new ExportToPdfAction( _model, this ) );
-        filemenu.add( new PrintAction( _model, this ) );
+        filemenu.add( new PrintLabelsAction( _model, this ) );
         filemenu.addSeparator();
         filemenu.add( new ExitAction( _model, this ) );
+
+        JMenu projectmenu = new JMenu("Project");
+        projectmenu.add( new AddPageAction( _model, this ) );
+        projectmenu.addSeparator();
+        projectmenu.add(new SortByLastNameAction(_model, this));
+        projectmenu.add(new SortByCountryAction(_model, this));
+
+        JMenu csvmenu = new JMenu( "CSV" );
+        csvmenu.add( new OpenCsvAction( _model, this ) );
+        csvmenu.addSeparator();
+        csvmenu.add( new SaveCsvAction( _model, this, false ) );
+        csvmenu.add( new SaveCsvAction( _model, this, true ) );
+        csvmenu.addSeparator();
+        csvmenu.add( new UpdateRecordsAction( _model, this ) );
 
         JMenu templmenu = new JMenu( "Template" );
         ButtonGroup group = new ButtonGroup();
@@ -85,6 +96,8 @@ public class View
 
         JMenuBar menubar = new JMenuBar();
         menubar.add( filemenu );
+        menubar.add( projectmenu );
+        menubar.add( csvmenu );
         menubar.add( templmenu );
         menubar.add( helpmenu );
 
@@ -100,7 +113,7 @@ public class View
         toolbar.add( new SaveCsvAction( _model, this, false ) );
         toolbar.addSeparator();
         toolbar.add( new ExportToPdfAction( _model, this ) );
-        toolbar.add( new PrintAction( _model, this ) );
+        toolbar.add( new PrintLabelsAction( _model, this ) );
         toolbar.addSeparator();
         toolbar.add( new JLabel( "Search: " ) );
 
@@ -149,6 +162,7 @@ public class View
     public FileDialog getLoadCsvFileDialog()
     {
         _fileDialog.setMode( FileDialog.LOAD );
+        _fileDialog.setTitle( "Load Contact List" );
         _fileDialog.setFilenameFilter( new FilenameFilter(){
             public boolean accept( File dir, String name )
             {
@@ -161,7 +175,7 @@ public class View
     public FileDialog getSaveCsvFileDialog()
     {
         _fileDialog.setMode( FileDialog.SAVE );
-        _fileDialog.setTitle( "Open Contact List" );
+        _fileDialog.setTitle( "Save Contact List" );
         _fileDialog.setFilenameFilter( new FilenameFilter(){
             public boolean accept( File dir, String name )
             {
@@ -169,6 +183,32 @@ public class View
             }
         });
         return _fileDialog;
+    }
+
+    public FileDialog getLoadProjectFileDialog()
+    {
+        _projectFileDialog.setMode( FileDialog.LOAD );
+        _fileDialog.setTitle( "Load Project" );
+        _projectFileDialog.setFilenameFilter( new FilenameFilter(){
+            public boolean accept( File dir, String name )
+            {
+                return name.endsWith( ".sav" );
+            }
+        });
+        return _projectFileDialog;
+    }
+
+    public FileDialog getSaveProjectFileDialog()
+    {
+        _projectFileDialog.setMode( FileDialog.SAVE );
+        _projectFileDialog.setTitle( "Save Project" );
+        _projectFileDialog.setFilenameFilter( new FilenameFilter(){
+            public boolean accept( File dir, String name )
+            {
+                return name.endsWith( ".sav" );
+            }
+        });
+        return _projectFileDialog;
     }
 }
 
