@@ -1,9 +1,5 @@
 package addresslabel.template;
 
-import java.util.UUID;
-
-import addresslabel.util.Logger;
-
 public class Avery5160Template extends Template
 {
     /**
@@ -13,18 +9,18 @@ public class Avery5160Template extends Template
     public Avery5160Template()
     {
         super( "Avery 5160" );
-        _rows = 10;
-        _columns = 3;
-        _paperWidth  =  8.5;    // inches
-        _paperHeight = 11.0;    // inches
-        _labelWidth  =  2.625;  // inches
-        _labelHeight =  1.0;    // inches
-        _margins[ Template.TOP    ] = 0.5;
-        _margins[ Template.RIGHT  ] = 0.19;  // 0.21975
-        _margins[ Template.LEFT   ] = 0.19;  // 0.21975
-        _margins[ Template.BOTTOM ] = 0.5;
-        _verticalPitch   = 1.0;    // inches
-        _horizontalPitch = 2.75;   // inches
+        rows = 10;
+        columns = 3;
+        paperWidth =  8.5;    // inches
+        paperHeight = 11.0;    // inches
+        labelWidth =  2.625;  // inches
+        labelHeight =  1.0;    // inches
+        margins[ Template.TOP    ] = 0.5;
+        margins[ Template.RIGHT  ] = 0.19;  // 0.21975
+        margins[ Template.LEFT   ] = 0.19;  // 0.21975
+        margins[ Template.BOTTOM ] = 0.5;
+        verticalPitch = 1.0;    // inches
+        horizontalPitch = 2.75;   // inches
     }
 }
 

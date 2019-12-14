@@ -15,7 +15,7 @@ repositories {
 
 dependencies {
     compile "com.opencsv:opencsv:4.0"
-    compile "org.apache.pdfbox:pdfbox:2.0.13"
+    compile "org.apache.pdfbox:pdfbox:2.0.17"
     compile fileTree( dir: "lib", include: ["*.jar"] )
 }
 

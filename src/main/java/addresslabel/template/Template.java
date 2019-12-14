@@ -1,12 +1,9 @@
 package addresslabel.template;
 
-import java.util.UUID;
 import java.util.List;
 import java.util.ArrayList;
 
-import java.io.FileWriter;
 import java.io.BufferedWriter;
-import java.io.IOException;
 
 import addresslabel.Record;
 import addresslabel.util.Logger;
@@ -14,7 +11,6 @@ import addresslabel.util.Logger;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.*;
 import org.apache.pdfbox.pdmodel.font.*;
-import org.apache.pdfbox.util.*;
 
 public class Template
 {
@@ -26,47 +22,47 @@ public class Template
     public static final double INCH = 72.0; // 72pts per inch
 
     private Logger _logger;
-    protected String _name;
-    protected double[]_margins = { 0, 0, 0, 0 };  // inches
-    protected int _rows;
-    protected int _columns;
-    protected double _paperWidth;
-    protected double _paperHeight;
-    protected double _labelWidth;
-    protected double _labelHeight;
-    protected double[] _labelMargins = { 0.125, 0.125, 0.125, 0.125 };
+    protected String name;
+    protected double[] margins = { 0, 0, 0, 0 };  // inches
+    protected int rows;
+    protected int columns;
+    protected double paperWidth;
+    protected double paperHeight;
+    protected double labelWidth;
+    protected double labelHeight;
+    protected double[] labelMargins = { 0.125, 0.125, 0.125, 0.125 };
 
     // The vertical pitch is defined as the measurement from the top of the first label to the top of the label below it. 
     // The horizontal pitch is defined as the measurement from the left edge of the first label to the left edge of the label next to it.
-    protected double _verticalPitch;
-    protected double _horizontalPitch;
+    protected double verticalPitch;
+    protected double horizontalPitch;
 
-    protected String _fontName;
-    protected int _fontSize;
+    protected String fontName;
+    protected int fontSize;
 
-    protected boolean _drawLabelBorder;
-    protected boolean _drawMargins;
+    protected boolean drawLabelBorder;
+    protected boolean drawMargins;
 
 
     public Template( String name )
     {
         _logger = Logger.getLogger( "Template(" + name + ")" );
-        _name = name;
-        _rows         = 0;
-        _columns      = 0;
-        _paperWidth   =  8.5;   // inches
-        _paperHeight  = 11.0;   // inches
-        _labelWidth   =  2.63;  // inches
-        _labelHeight  =  1.0;   // inches
+        this.name = name;
+        rows = 0;
+        columns = 0;
+        paperWidth =  8.5;   // inches
+        paperHeight = 11.0;   // inches
+        labelWidth =  2.63;  // inches
+        labelHeight =  1.0;   // inches
 
-        _verticalPitch   = 1.0;   // inches
-        _horizontalPitch = 1.0;   // inches
+        verticalPitch = 1.0;   // inches
+        horizontalPitch = 1.0;   // inches
 
-        _fontName = "Helvetica";
-        _fontSize = 10;
+        fontName = "Helvetica";
+        fontSize = 10;
 
-        _drawLabelBorder = true;
-        _drawMargins = false;
+        drawLabelBorder = true;
+        drawMargins = false;
     }
 
 
@@ -93,15 +89,15 @@ public class Template
                 //_logger.info( "pageHeightInch=" + (pageHeight / INCH) );
 
                 PDPageContentStream contents = new PDPageContentStream( doc, page );
-                double topmargin  = _margins[ TOP    ] * INCH;
-                double leftmargin = _margins[ LEFT   ] * INCH;
-                double botmargin  = _margins[ BOTTOM ] * INCH;
-                double rtmargin   = _margins[ RIGHT  ] * INCH;
+                double topmargin  = margins[ TOP    ] * INCH;
+                double leftmargin = margins[ LEFT   ] * INCH;
+                double botmargin  = margins[ BOTTOM ] * INCH;
+                double rtmargin   = margins[ RIGHT  ] * INCH;
 
                 //_logger.info( "topMargin=" + topmargin );
                 //_logger.info( "leftMargin=" + leftmargin );
 
-                if( _drawMargins )
+                if(drawMargins)
                 {
                     contents.moveTo( (float) leftmargin, (float) botmargin );
                     contents.lineTo( (float) leftmargin, (float) (pageHeight - topmargin) );
@@ -111,14 +107,14 @@ public class Template
                     contents.closeAndStroke();
                 }
 
-                for( int row = 0; row < _rows; ++row )
+                for(int row = 0; row < rows; ++row )
                 {
-                    for( int col = 0; col < _columns; ++col )
+                    for(int col = 0; col < columns; ++col )
                     {
-                        int y = (int) Math.round(pageHeight - topmargin - (row * _verticalPitch * INCH));
-                        int x = (int) Math.round(leftmargin + (col * _horizontalPitch * INCH));
-                        int yInch = (int) Math.round(pageHeight - topmargin - (row * _verticalPitch));
-                        int xInch = (int) Math.round(leftmargin + (col * _horizontalPitch));
+                        int y = (int) Math.round(pageHeight - topmargin - (row * verticalPitch * INCH));
+                        int x = (int) Math.round(leftmargin + (col * horizontalPitch * INCH));
+                        int yInch = (int) Math.round(pageHeight - topmargin - (row * verticalPitch));
+                        int xInch = (int) Math.round(leftmargin + (col * horizontalPitch));
                         //_logger.info( "Calling drawLabel at x=" + xInch + ", y=" + yInch );
                         Record r = records.get( recordidx );
                         _drawLabel( doc, contents, x, y, r );
@@ -163,27 +159,27 @@ public class Template
             }
 
             PDFont font = null;
-            if( _fontName.equalsIgnoreCase( "Helvetica" ) )
+            if( fontName.equalsIgnoreCase( "Helvetica" ) )
                 font = PDType1Font.HELVETICA;
             else
                 font = PDType1Font.HELVETICA;
 
             // center text in label
-            double maxlinelen = font.getStringWidth( maxline ) / 1000.0 * _fontSize;
+            double maxlinelen = font.getStringWidth( maxline ) / 1000.0 * fontSize;
 
             List<String> labelLines = new ArrayList<>();
-            int maxwidth = (int) ((_labelWidth - _labelMargins[ LEFT ] - _labelMargins[ RIGHT ]) * INCH);
+            int maxwidth = (int) ((labelWidth - labelMargins[ LEFT ] - labelMargins[ RIGHT ]) * INCH);
             if( maxlinelen > maxwidth )
             {
                 // Reset maxline, so we can re-calculate maxlinelen
                 maxline = "";
                 //self.log.debug( "maxlinelen (%d) > maxwidth (%d)" % (maxlinelen, maxwidth) )
-                double charwidth = font.getStringWidth( "a" ) * _fontSize / 1000.0;
+                double charwidth = font.getStringWidth( "a" ) * fontSize / 1000.0;
                 // One or more of the lines exceed the max width
                 for( String line: lines )
                 {
                     line = line.replace( "\n", "" ).replace( "\r", "" );
-                    double w = font.getStringWidth( line ) * _fontSize / 1000.0;
+                    double w = font.getStringWidth( line ) * fontSize / 1000.0;
                     if( w > maxwidth )
                     {
                         int maxchars = Math.min( (int) (maxwidth / charwidth), line.length() );
@@ -211,7 +207,7 @@ public class Template
                     }
                 }
 
-                maxlinelen = font.getStringWidth( maxline ) * _fontSize / 1000.0;
+                maxlinelen = font.getStringWidth( maxline ) * fontSize / 1000.0;
             }
             else
             {
@@ -229,33 +225,33 @@ public class Template
             //_logger.info( "   Max Line: '" + maxline + "'" );
             //_logger.info( "   Max Line Len: " + maxlinelenInch + " (" + maxlinelen + "px)" );
 
-            //_logger.info( "Label Width: " + (_labelWidth * INCH) );
-            //_logger.info( "Label Height: " + (_labelHeight * INCH) );
-            //_logger.info( "Label Top Margin: " + (_labelMargins[ TOP ] * INCH) );
-            //_logger.info( "Label Left Margin: " + (_labelMargins[ LEFT ] * INCH) );
+            //_logger.info( "Label Width: " + (labelWidth * INCH) );
+            //_logger.info( "Label Height: " + (labelHeight * INCH) );
+            //_logger.info( "Label Top Margin: " + (labelMargins[ TOP ] * INCH) );
+            //_logger.info( "Label Left Margin: " + (labelMargins[ LEFT ] * INCH) );
 
-            int cx = x + (int) Math.round(((_labelWidth  * INCH) - maxlinelen) / 2);
-            int cxInch = xInch + (int) Math.round((_labelWidth - maxlinelenInch) / 2);
+            int cx = x + (int) Math.round(((labelWidth  * INCH) - maxlinelen) / 2);
+            int cxInch = xInch + (int) Math.round((labelWidth - maxlinelenInch) / 2);
             //_logger.info( "   Text Start X: " + cxInch + " (" + cx + "px)" );
 
             // Include margin
-            if( cx < x + (int) Math.round(_labelMargins[ LEFT ] * INCH) )
+            if( cx < x + (int) Math.round(labelMargins[ LEFT ] * INCH) )
             {
-                cx = x + (int) Math.round(_labelMargins[ LEFT ] * INCH);
-                cxInch = xInch + (int) Math.round(_labelMargins[ LEFT ]);
+                cx = x + (int) Math.round(labelMargins[ LEFT ] * INCH);
+                cxInch = xInch + (int) Math.round(labelMargins[ LEFT ]);
                 //_logger.info( "      Text Start X Modified: " + cxInch + " (" + cx + "px)" );
             }
 
-            int cy = y - (int) Math.round(_labelMargins[ TOP ] * INCH) - _fontSize;
-            int cyInch = yInch - (int) Math.round(_labelMargins[ TOP ]) - _fontSize;
+            int cy = y - (int) Math.round(labelMargins[ TOP ] * INCH) - fontSize;
+            int cyInch = yInch - (int) Math.round(labelMargins[ TOP ]) - fontSize;
             //_logger.info( "   Text Start Y: " + cyInch + " (" + cy + "px)" );
 
             // Get the string height in text space units.
-            float stringHeight = font.getFontDescriptor().getFontBoundingBox().getHeight() / 1000.f * _fontSize;
+            float stringHeight = font.getFontDescriptor().getFontBoundingBox().getHeight() / 1000.f * fontSize;
             //_logger.info( "   Text Height: " + stringHeight + "px" );
 
             c.beginText();
-            c.setFont( font, _fontSize );
+            c.setFont( font, fontSize);
             c.newLineAtOffset( cx, cy );
 
             for( int i = 0; i < labelLines.size(); ++i )
@@ -265,14 +261,14 @@ public class Template
                 c.newLineAtOffset( 0, -stringHeight );
             }
             c.endText();
-            if( _drawLabelBorder )
+            if(drawLabelBorder)
             {
                 //RoundRect roundRect = new RoundRect( 5, 5 );
-                //roundRect.add( doc, c, (float) x, (float) (y - (_labelHeight * INCH)), (float) (_labelWidth * INCH), (float) (_labelHeight * INCH) );
+                //roundRect.add( doc, c, (float) x, (float) (y - (labelHeight * INCH)), (float) (labelWidth * INCH), (float) (labelHeight * INCH) );
                 c.moveTo( (float) x, (float) y );
-                c.lineTo( (float) x, (float) (y - (_labelHeight * INCH)) );
-                c.lineTo( (float) (x + (_labelWidth * INCH)), (float) (y - (_labelHeight * INCH)) );
-                c.lineTo( (float) (x + (_labelWidth * INCH)), (float) y );
+                c.lineTo( (float) x, (float) (y - (labelHeight * INCH)) );
+                c.lineTo( (float) (x + (labelWidth * INCH)), (float) (y - (labelHeight * INCH)) );
+                c.lineTo( (float) (x + (labelWidth * INCH)), (float) y );
                 c.lineTo( (float) x, (float) y );
                 c.closeAndStroke();
             }
@@ -385,23 +381,39 @@ public class Template
             c.roundRect( x, y - (self.label_height * inch), self.label_width * inch, self.label_height * inch, 5 )
             */
 
-    public String getName(){ return _name; }
-    public double[] getMargins(){ return _margins; }
-    public int getRows(){ return _rows; }
-    public int getColumns(){ return _columns; }
-    public double getPaperWidth(){ return _paperWidth; }
-    public double getPaperHeight(){ return _paperHeight; }
-    public double getLabelWidth(){ return _labelWidth; }
-    public double getLabelHeight(){ return _labelHeight; }
-    public double[] getLabelMargins(){ return _labelMargins; }
+    public String getName(){ return name; }
+    public double[] getMargins(){ return margins; }
+    public int getRows(){ return rows; }
+    public int getColumns(){ return columns; }
+    public double getPaperWidth(){ return paperWidth; }
+    public double getPaperHeight(){ return paperHeight; }
+    public double getLabelWidth(){ return labelWidth; }
+    public double getLabelHeight(){ return labelHeight; }
+    public double[] getLabelMargins(){ return labelMargins; }
 
-    public double getVerticalPitch(){ return _verticalPitch; }
-    public double getHorizontalPitch(){ return _horizontalPitch; }
+    public double getVerticalPitch(){ return verticalPitch; }
+    public double getHorizontalPitch(){ return horizontalPitch; }
 
-    public String getFontName(){ return _fontName; }
-    public int getFontSize(){ return _fontSize; }
+    public String getFontName(){ return fontName; }
+    public int getFontSize(){ return fontSize; }
 
-    public boolean shouldDrawLabelBorder(){ return _drawLabelBorder; }
-    public boolean shouldDrawMargins(){ return _drawMargins; }
+    public boolean shouldDrawLabelBorder(){ return drawLabelBorder; }
+    public boolean shouldDrawMargins(){ return drawMargins; }
+
+    public void setFontName(String fontName) {
+        this.fontName = fontName;
+    }
+
+    public void setFontSize(int fontSize) {
+        this.fontSize = fontSize;
+    }
+
+    public void setDrawLabelBorder(boolean drawLabelBorder) {
+        this.drawLabelBorder = drawLabelBorder;
+    }
+
+    public void setDrawMargins(boolean drawMargins) {
+        this.drawMargins = drawMargins;
+    }
 }
 

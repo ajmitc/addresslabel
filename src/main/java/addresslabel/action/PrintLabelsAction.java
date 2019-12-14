@@ -2,8 +2,6 @@ package addresslabel.action;
 
 import javax.swing.Action;
 import javax.swing.AbstractAction;
-import javax.print.*;
-import javax.print.attribute.*;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;

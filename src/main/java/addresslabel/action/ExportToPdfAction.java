@@ -9,20 +9,24 @@ import java.io.IOException;
 import java.util.UUID;
 
 import addresslabel.Model;
+import addresslabel.view.ExportToPDFDialog;
 import addresslabel.view.View;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 
+/**
+ * This action kicks off the PDF generation.  It should only be called by the OpenExportToPDFDialogAction.
+ */
 public class ExportToPdfAction extends AbstractAction
 {
-    private Model _model;
-    private View _view;
+    private Model model;
+    private View view;
 
     public ExportToPdfAction( Model model, View view )
     {
         super( "Export PDF" );
-        _model = model;
-        _view  = view;
+        this.model = model;
+        this.view = view;
         putValue( Action.SHORT_DESCRIPTION, "Export to PDF File" );
         putValue( Action.MNEMONIC_KEY, new Integer( KeyEvent.VK_X ) );
     }
@@ -30,14 +34,25 @@ public class ExportToPdfAction extends AbstractAction
 
     public void actionPerformed( ActionEvent e )
     {
-        if( _model.getUsedRecords().size() == 0 )
+        if( model.getUsedRecords().size() == 0 )
         {
             System.out.println( "No records found, nothing to export!" );
             return;
         }
 
-        _view.getSheetPanel().saveLabels();
-        PDDocument doc = _model.getTemplate().toPDF( _model.getUsedRecords() );
+        ExportToPDFDialog dialog = new ExportToPDFDialog(model, view);
+        dialog.setVisible(true);
+
+        if (dialog.isCanceled())
+            return;
+
+        model.getTemplate().setFontName(dialog.getFontName());
+        model.getTemplate().setFontSize(dialog.getFontSize());
+        model.getTemplate().setDrawLabelBorder(dialog.shouldDrawLabelBorder());
+        model.getTemplate().setDrawMargins(dialog.shouldDrawMargins());
+
+        view.getSheetPanel().saveLabels();
+        PDDocument doc = model.getTemplate().toPDF( model.getUsedRecords() );
         String fn = __getTempFilename();
         try
         {
@@ -50,7 +65,7 @@ public class ExportToPdfAction extends AbstractAction
         }
 
         // Open warning box to print correctly
-        JOptionPane.showMessageDialog( _view.getFrame(), "Be sure to disable Page Scaling when printing PDF", "Print Information", JOptionPane.INFORMATION_MESSAGE );
+        JOptionPane.showMessageDialog(view.getFrame(), "Be sure to disable Page Scaling when printing PDF", "Print Information", JOptionPane.INFORMATION_MESSAGE);
 
         if( Desktop.isDesktopSupported() )
         {
