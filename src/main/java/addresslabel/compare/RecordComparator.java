@@ -12,23 +12,34 @@ import java.util.logging.*;
 public class RecordComparator {
     private static Logger logger = Logger.getLogger( RecordComparator.class.getName() );
 
+    private static final double MIN_MATCH_SCORE = 0.5;
+
     public static List<RecordDiff> getDiffs( List<Record> records1, List<Record> records2 ) {
         List<RecordDiff> diffs = new ArrayList<>();
 
         // For each Record in records1, see if we can match with a Record in records2
+        List<Record> exactMatches = new ArrayList<>();
         for( Record r1: records1 ) {
             List<RecordDiff> matches = new ArrayList<>();
 
             boolean foundExactMatch = false;
             for( Record r2: records2 ) {
-                double score = getComparisonScore( r1, r2 );
-                if( score >= 1.0 ) {
-                    // exact match, skip it
+                // Ignore any Records that we've already matched exactly to another Record
+                if( exactMatches.contains( r2 ) ) {
+                    continue;
+                }
+
+                // Check if this Record exactly matches r1
+                if( r1.equals( r2 ) ) {
                     foundExactMatch = true;
-                    logger.info( "Found exact match:\n" + r1.getDisplay() + "\n\n" + r2.getDisplay() );
+                    exactMatches.add( r1 );
+                    exactMatches.add( r2 );
                     break;
                 }
-                if( score > .5 ) {
+
+                // OK, they don't exactly match, see how close they are to each other.
+                double score = getComparisonScore( r1, r2 );
+                if( score > MIN_MATCH_SCORE ) {
                     matches.add( new RecordDiff( r1, r2, DiffType.Updated, score ) );
                     logger.info( "Found match (" + score + "):\n" + r1.getDisplay() + "\n\n" + r2.getDisplay() );
                 }
@@ -55,9 +66,10 @@ public class RecordComparator {
                 });
 
                 // Filter out all matches that are not within 10% of the best match
-                double bestScore = matches.get( 0 ).getComparisonScore();
-                logger.info( "Filtering out matches more than 0.1 less than " + bestScore );
-                matches = matches.stream().filter( rd -> bestScore - rd.getComparisonScore() > 0.1 ).collect( Collectors.toList() );
+                double bestScore = matches.stream().max( Comparator.comparing( RecordDiff::getComparisonScore ) ).get().getComparisonScore();
+                double minScore = bestScore - (bestScore / 10.0);
+                logger.info( "Filtering out matches less than " + minScore );
+                matches = matches.stream().filter( rd -> rd.getComparisonScore() >= minScore ).collect( Collectors.toList() );
                 logger.info( "   " + matches.size() + " matches left" );
 
                 for( RecordDiff rm: matches ) {
@@ -71,13 +83,16 @@ public class RecordComparator {
         }
 
         // Search for new Records added in records2
+        // These will be Records that are not exact matches and are not a close enough match to an existing Record
         for( Record r2: records2 ) {
-            boolean foundMatch = false;
-            for( RecordDiff rd: diffs ) {
-                if( rd.getRecord2() == r2 ) {
-                    // match, skip it
-                    foundMatch = true;
-                    break;
+            boolean foundMatch = exactMatches.contains( r2 );
+            if( !foundMatch ) {
+                for (RecordDiff rd : diffs) {
+                    if (rd.getRecord2() == r2) {
+                        // match, skip it
+                        foundMatch = true;
+                        break;
+                    }
                 }
             }
             if( foundMatch ) {
@@ -125,43 +140,44 @@ public class RecordComparator {
 
     /**
      * Compare the two Records.
-     * score = (Number of equal Fields) / (Number of fields)
+     * score = Sum(comparison of each field)
      * @param record1
      * @param record2
      * @return
      */
     private static double getComparisonScore( Record record1, Record record2 ) {
-        double numEqualFields = 0.0;
-        double numAddedFields = 0.0;
-        double numRemovedFields = 0.0;
+        double totalScore = 0.0;
 
-        for( String key: record1.getData().keySet() ) {
-            String value1 = record1.getData().get( key );
-            String value2 = null;
-            if( record2.getData().containsKey( key ) ) {
-                value2 = record2.getData().get( key );
-            }
+        logger.info( "Checking for updated/removed fields" );
+        for( String key1: record1.getData().keySet() ) {
+            String value1 = record1.getData().get( key1 );
 
-            if( value2 == null ) {
-                numAddedFields += 1.0;
+            double highestScore = 0.0;
+            for( String key2: record2.getData().keySet() ) {
+                String value2 = record2.getData().get( key2 );
+
+                if( !value1.isEmpty() || !value2.isEmpty()){
+                    double score = StringSimilarity.similarity( value1, value2 );
+                    logger.info( "Comparing '" + value1 + "' to '" + value2 + "': " + score );
+                    highestScore = Math.max( highestScore, score );
+                }
             }
-            else if( value1.equalsIgnoreCase( value2 ) ){
-                numEqualFields += 1.0;
-            }
+            totalScore += highestScore;
         }
 
         // Check for new fields (exist in record2, but not in record1)
+        logger.info( "Checking for new fields" );
         for( String key: record2.getData().keySet() ) {
             String value2 = record2.getData().get( key );
-            if( !record1.getData().containsKey( key ) ) {
-                numRemovedFields += 1.0;
+            if( !record1.getData().containsKey( key ) && !value2.isEmpty() ) {
+                double score = StringSimilarity.similarity( "", value2 );
+                logger.info( "Comparing '' to '" + value2 + "': " + score );
+                totalScore += score;
             }
         }
 
-        double totalNumFields = record1.getData().size();
-        double score = numEqualFields / totalNumFields;
-
-        return score;
+        logger.info( "Total Score: " + totalScore );
+        return totalScore;
     }
 }
 
