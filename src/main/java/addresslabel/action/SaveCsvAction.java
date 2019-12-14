@@ -32,7 +32,7 @@ public class SaveCsvAction extends AbstractAction
 
     public void actionPerformed( ActionEvent e )
     {
-        if( _model.getLoadedFilepath() != null )
+        if (_model.getLoadedFilepath() != null && !_saveas)
             _model.writeCsv();
         else
         {

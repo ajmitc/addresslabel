@@ -59,12 +59,16 @@ public class View
         filemenu.add( new SaveProjectAction( _model, this, false ) );
         filemenu.add( new SaveProjectAction( _model, this, true ) );
         filemenu.addSeparator();
-        filemenu.add( new AddPageAction( _model, this ) );
-        filemenu.addSeparator();
         filemenu.add( new ExportToPdfAction( _model, this ) );
         filemenu.add( new PrintLabelsAction( _model, this ) );
         filemenu.addSeparator();
         filemenu.add( new ExitAction( _model, this ) );
+
+        JMenu projectmenu = new JMenu("Project");
+        projectmenu.add( new AddPageAction( _model, this ) );
+        projectmenu.addSeparator();
+        projectmenu.add(new SortByLastNameAction(_model, this));
+        projectmenu.add(new SortByCountryAction(_model, this));
 
         JMenu csvmenu = new JMenu( "CSV" );
         csvmenu.add( new OpenCsvAction( _model, this ) );
@@ -92,6 +96,7 @@ public class View
 
         JMenuBar menubar = new JMenuBar();
         menubar.add( filemenu );
+        menubar.add( projectmenu );
         menubar.add( csvmenu );
         menubar.add( templmenu );
         menubar.add( helpmenu );
@@ -203,7 +208,7 @@ public class View
                 return name.endsWith( ".sav" );
             }
         });
-        return _fileDialog;
+        return _projectFileDialog;
     }
 }
 

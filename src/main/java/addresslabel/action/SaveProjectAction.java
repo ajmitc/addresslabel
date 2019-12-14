@@ -27,7 +27,7 @@ public class SaveProjectAction extends AbstractAction
 
     public void actionPerformed( ActionEvent e )
     {
-        if( _model.getLoadedProjectFilepath() != null )
+        if( _model.getLoadedProjectFilepath() != null && !_saveAs )
             _model.writeProject();
         else
         {
