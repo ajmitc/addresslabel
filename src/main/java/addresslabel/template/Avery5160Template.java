@@ -12,7 +12,7 @@ public class Avery5160Template extends Template
      */
     public Avery5160Template()
     {
-        super( "Avery 5160" );
+        super( "Avery 5160/8460" );
         _rows = 10;
         _columns = 3;
         _paperWidth  =  8.5;    // inches

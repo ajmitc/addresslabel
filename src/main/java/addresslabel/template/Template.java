@@ -65,7 +65,7 @@ public class Template
         _fontName = "Helvetica";
         _fontSize = 10;
 
-        _drawLabelBorder = true;
+        _drawLabelBorder = false;
         _drawMargins = false;
     }
 

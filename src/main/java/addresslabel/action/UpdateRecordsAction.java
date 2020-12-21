@@ -14,6 +14,8 @@ import addresslabel.compare.RecordDiff;
 import addresslabel.Model;
 import addresslabel.Record;
 import addresslabel.util.Logger;
+import addresslabel.view.RecordComparatorProgressBarDialog;
+import addresslabel.view.RecordComparatorProgressBarWorker;
 import addresslabel.view.compare.CompareRecordsDialog;
 import addresslabel.view.View;
 
@@ -56,7 +58,11 @@ public class UpdateRecordsAction extends AbstractAction
                 } else {
                     _logger.info( "Loaded contacts from " + filepath );
                     _logger.info( "Getting diffs" );
-                    List<RecordDiff> diffs = RecordComparator.getDiffs( _model.getRecords(), records );
+                    RecordComparatorProgressBarDialog dialog = new RecordComparatorProgressBarDialog(_view.getFrame());
+                    RecordComparatorProgressBarWorker worker = new RecordComparatorProgressBarWorker(_model.getRecords(), records, dialog);
+                    worker.execute();
+                    dialog.setVisible(true);
+                    List<RecordDiff> diffs = worker.get(); //RecordComparator.getDiffs( _model.getRecords(), records );
                     // Display diffs in dialog and let user select which ones to copy over
                     CompareRecordsDialog d = new CompareRecordsDialog( _view.getFrame(), _model, diffs );
                     d.setVisible( true );
