@@ -7,16 +7,16 @@ import java.awt.event.KeyEvent;
 
 import addresslabel.Model;
 import addresslabel.view.View;
-import addresslabel.template.Template;
+import addresslabel.template.LabelSheetTemplate;
 
 
 public class SelectTemplateAction extends AbstractAction
 {
     private Model _model;
     private View _view;
-    private Template _template;
+    private LabelSheetTemplate _template;
 
-    public SelectTemplateAction( Model model, View view, Template templ )
+    public SelectTemplateAction( Model model, View view, LabelSheetTemplate templ )
     {
         super( templ.getName() );
         putValue( Action.SHORT_DESCRIPTION, "Select Label Template" );

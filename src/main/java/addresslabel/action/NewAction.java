@@ -25,6 +25,7 @@ public class NewAction extends AbstractAction
     {
         _model.clearRecords();
         _model.addPageOfEmptyRecords();
+        _view.setStatus("Load a CSV File or Import your Google Contacts");
         _view.refresh();
     }
 }

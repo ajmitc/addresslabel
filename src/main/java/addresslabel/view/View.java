@@ -1,14 +1,6 @@
 package addresslabel.view;
 
-import javax.swing.JFrame;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JRadioButtonMenuItem;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.JButton;
-import javax.swing.JToolBar;
-import javax.swing.ButtonGroup;
+import javax.swing.*;
 
 import java.awt.FileDialog;
 import java.awt.BorderLayout;
@@ -18,124 +10,150 @@ import java.io.FilenameFilter;
 
 import addresslabel.Model;
 import addresslabel.action.*;
-import addresslabel.template.Template;
+import addresslabel.template.LabelSheetTemplate;
 import addresslabel.util.Logger;
 
 public class View
 {
-    private Logger _logger;
-    private Model  _model;
-    private JFrame _frame;
+    private static final Logger _logger = Logger.getLogger(View.class);
+    private Model model;
+    private JFrame frame;
 
-    private JTextField _tfSearch;
-    private JButton _btnSearchNext;
-    private JButton _btnNextPage;
-    private JButton _btnPrevPage;
-    private JLabel  _lblPage;
+    private JTextField tfSearch;
+    private JButton btnSearchNext;
+    private JButton btnNextPage;
+    private JButton btnPrevPage;
+    private JLabel lblPage;
 
-    private SheetPanel _sheetpanel;
+    private JLabel lblStatus;
+    private JLabel lblGoogleUser;
 
-    private FileDialog _fileDialog;
-    private FileDialog _projectFileDialog;
+    private SheetPanel sheetpanel;
+
+    private FileDialog fileDialog;
+    private FileDialog projectFileDialog;
 
     public View( Model model, JFrame frame )
     {
-        _logger = Logger.getLogger( "Model" );
-        _model  = model;
-        _frame  = frame;
+        this.model = model;
+        this.frame = frame;
 
-        _fileDialog = new FileDialog( _frame, "Choose a file", FileDialog.LOAD );
-        _fileDialog.setDirectory( System.getProperty( "os.name" ).toLowerCase().startsWith( "win" )? "C:\\": "~" );
-        _fileDialog.setFile( "*.csv" );
+        fileDialog = new FileDialog(this.frame, "Choose a file", FileDialog.LOAD );
+        fileDialog.setDirectory( System.getProperty( "os.name" ).toLowerCase().startsWith( "win" )? "C:\\": "~" );
+        fileDialog.setFile( "*.csv" );
 
-        _projectFileDialog = new FileDialog( _frame, "Choose a file", FileDialog.LOAD );
-        _projectFileDialog.setDirectory( System.getProperty( "os.name" ).toLowerCase().startsWith( "win" )? "C:\\": "~" );
-        _projectFileDialog.setFile( "*.sav" );
+        projectFileDialog = new FileDialog(this.frame, "Choose a file", FileDialog.LOAD );
+        projectFileDialog.setDirectory( System.getProperty( "os.name" ).toLowerCase().startsWith( "win" )? "C:\\": "~" );
+        projectFileDialog.setFile( "*.sav" );
 
         JMenu filemenu = new JMenu( "File" );
-        filemenu.add( new NewAction( _model, this ) );
+        filemenu.add( new NewAction(this.model, this ) );
         filemenu.addSeparator();
-        filemenu.add( new OpenProjectAction( _model, this ) );
-        filemenu.add( new SaveProjectAction( _model, this, false ) );
-        filemenu.add( new SaveProjectAction( _model, this, true ) );
+        filemenu.add( new OpenProjectAction(this.model, this ) );
+        filemenu.add( new SaveProjectAction(this.model, this, false ) );
+        filemenu.add( new SaveProjectAction(this.model, this, true ) );
         filemenu.addSeparator();
-        filemenu.add( new ExportToPdfAction( _model, this ) );
-        filemenu.add( new PrintLabelsAction( _model, this ) );
+        filemenu.add( new ExportToPdfAction(this.model, this ) );
+        filemenu.add( new PrintLabelsAction(this.model, this ) );
         filemenu.addSeparator();
-        filemenu.add( new ExitAction( _model, this ) );
+        filemenu.add( new ExitAction(this.model, this ) );
 
         JMenu projectmenu = new JMenu("Project");
-        projectmenu.add( new AddPageAction( _model, this ) );
+        projectmenu.add( new AddPageAction(this.model, this ) );
         projectmenu.addSeparator();
-        projectmenu.add(new SortByLastNameAction(_model, this));
-        projectmenu.add(new SortByCountryAction(_model, this));
+        projectmenu.add(new SortByLastNameAction(this.model, this));
+        projectmenu.add(new SortByCountryAction(this.model, this));
 
         JMenu csvmenu = new JMenu( "CSV" );
-        csvmenu.add( new OpenCsvAction( _model, this ) );
+        csvmenu.add( new OpenCsvAction(this.model, this ) );
         csvmenu.addSeparator();
-        csvmenu.add( new SaveCsvAction( _model, this, false ) );
-        csvmenu.add( new SaveCsvAction( _model, this, true ) );
+        csvmenu.add( new SaveCsvAction(this.model, this, false ) );
+        csvmenu.add( new SaveCsvAction(this.model, this, true ) );
         csvmenu.addSeparator();
-        csvmenu.add( new UpdateRecordsAction( _model, this ) );
+        csvmenu.add( new UpdateRecordsAction(this.model, this ) );
 
         JMenu templmenu = new JMenu( "Template" );
         ButtonGroup group = new ButtonGroup();
-        for( int i = 0; i < Model.TEMPLATES.length; ++i )
+        for(int i = 0; i < Model.LABEL_SHEET_TEMPLATES.length; ++i )
         {
-            Template templ = Model.TEMPLATES[ i ];
-            JRadioButtonMenuItem rbmi = new JRadioButtonMenuItem( new SelectTemplateAction( _model, this, templ ) );
+            LabelSheetTemplate templ = Model.LABEL_SHEET_TEMPLATES[ i ];
+            JRadioButtonMenuItem rbmi = new JRadioButtonMenuItem( new SelectTemplateAction(this.model, this, templ ) );
             templmenu.add( rbmi );
             group.add( rbmi );
             if( i == 0 )
                 rbmi.setSelected( true );
         }
 
+        JMenu googlemenu = new JMenu("Google");
+        googlemenu.add(new ImportGoogleContactsAction(this.model,this));
+        googlemenu.add(new LogoutGoogleContactsAction(this.model,this));
+
         JMenu helpmenu = new JMenu( "Help" );
-        helpmenu.add( new DisplayManualAction( _model, this ) );
-        helpmenu.add( new DisplayAboutAction( _model, this ) );
+        helpmenu.add( new DisplayManualAction(this.model, this ) );
+        helpmenu.add( new DisplayAboutAction(this.model, this ) );
 
         JMenuBar menubar = new JMenuBar();
-        menubar.add( filemenu );
-        menubar.add( projectmenu );
-        menubar.add( csvmenu );
-        menubar.add( templmenu );
-        menubar.add( helpmenu );
+        menubar.add(filemenu);
+        menubar.add(projectmenu);
+        menubar.add(csvmenu);
+        menubar.add(templmenu);
+        menubar.add(googlemenu);
+        menubar.add(helpmenu);
 
-        _frame.setJMenuBar( menubar );
+        this.frame.setJMenuBar( menubar );
 
 
         JToolBar toolbar = new JToolBar();
         toolbar.setFloatable( false );
         toolbar.setRollover( true );
         toolbar.addSeparator();
-        toolbar.add( new NewAction( _model, this ) );
-        toolbar.add( new OpenCsvAction( _model, this ) );
-        toolbar.add( new SaveCsvAction( _model, this, false ) );
+        toolbar.add( new NewAction(this.model, this ) );
+        toolbar.add( new OpenCsvAction(this.model, this ) );
+        toolbar.add( new SaveCsvAction(this.model, this, false ) );
         toolbar.addSeparator();
-        toolbar.add( new ExportToPdfAction( _model, this ) );
-        toolbar.add( new PrintLabelsAction( _model, this ) );
+        toolbar.add( new ExportToPdfAction(this.model, this ) );
+        toolbar.add( new PrintLabelsAction(this.model, this ) );
         toolbar.addSeparator();
         toolbar.add( new JLabel( "Search: " ) );
 
-        _tfSearch = new JTextField( 10 );
-        _btnSearchNext = new JButton( "Next" );
-        toolbar.add( _tfSearch );
-        toolbar.add( _btnSearchNext );
+        tfSearch = new JTextField( 10 );
+        btnSearchNext = new JButton( "Next" );
+        toolbar.add(tfSearch);
+        toolbar.add(btnSearchNext);
         toolbar.addSeparator();
 
-        _btnNextPage = new JButton( ">" );
-        _btnPrevPage = new JButton( "<" );
-        _lblPage = new JLabel( "Page 0 of 0" );
-        toolbar.add( _btnPrevPage );
-        toolbar.add( _btnNextPage );
-        toolbar.add( _lblPage );
+        btnNextPage = new JButton( ">" );
+        btnPrevPage = new JButton( "<" );
+        lblPage = new JLabel( "Page 0 of 0" );
+        toolbar.add(btnPrevPage);
+        toolbar.add(btnNextPage);
+        toolbar.add(lblPage);
         toolbar.addSeparator();
 
-        _sheetpanel = new SheetPanel( _model, this );
+        sheetpanel = new SheetPanel(this.model, this );
 
-        _frame.getContentPane().setLayout( new BorderLayout() );
-        _frame.getContentPane().add( toolbar, BorderLayout.PAGE_START );
-        _frame.getContentPane().add( _sheetpanel, BorderLayout.CENTER );
+        // Status Panel
+        JPanel pnlStatus = new JPanel(new BorderLayout());
+        //pnlStatus.setBorder(BorderFactory.createBevelBorder(1));
+        lblStatus = new JLabel();
+        lblStatus.setBorder(
+                BorderFactory.createCompoundBorder(
+                    BorderFactory.createBevelBorder(1),
+                        BorderFactory.createEmptyBorder(2, 5, 2, 1)));
+        lblStatus.setText("Load a CSV File or Import your Google Contacts");
+        lblGoogleUser = new JLabel();
+        lblGoogleUser.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createBevelBorder(1),
+                        BorderFactory.createEmptyBorder(2, 5, 2, 1)));
+        lblGoogleUser.setText("Not logged in");
+        pnlStatus.add(lblStatus, BorderLayout.CENTER);
+        pnlStatus.add(lblGoogleUser, BorderLayout.EAST);
+
+        this.frame.getContentPane().setLayout(new BorderLayout());
+        this.frame.getContentPane().add(toolbar, BorderLayout.PAGE_START);
+        this.frame.getContentPane().add(sheetpanel, BorderLayout.CENTER);
+        this.frame.getContentPane().add(pnlStatus, BorderLayout.PAGE_END);
     }
 
     public void refresh()
@@ -145,70 +163,78 @@ public class View
 
     public void displayPage()
     {
-        int recordsPerPage = _model.getRecordsPerPage();
-        _sheetpanel.display( _model.getRecords().subList( _model.getPage() * recordsPerPage, _model.getRecords().size() ) );
-        _lblPage.setText( "Page " + (_model.getPage() + 1) + " of " + _model.getNumPagesToFitRecords() );
+        int recordsPerPage = model.getRecordsPerPage();
+        sheetpanel.display( model.getRecords().subList( model.getPage() * recordsPerPage, model.getRecords().size() ) );
+        lblPage.setText( "Page " + (model.getPage() + 1) + " of " + model.getNumPagesToFitRecords() );
     }
 
-    public JFrame getFrame(){ return _frame; }
-    public SheetPanel getSheetPanel(){ return _sheetpanel; }
-    public JTextField getTfSearch(){ return _tfSearch; }
-    public JButton getBtnSearchNext(){ return _btnSearchNext; }
-    public JButton getBtnNextPage(){ return _btnNextPage; }
-    public JButton getBtnPrevPage(){ return _btnPrevPage; }
+    public JFrame getFrame(){ return frame; }
+    public SheetPanel getSheetPanel(){ return sheetpanel; }
+    public JTextField getTfSearch(){ return tfSearch; }
+    public JButton getBtnSearchNext(){ return btnSearchNext; }
+    public JButton getBtnNextPage(){ return btnNextPage; }
+    public JButton getBtnPrevPage(){ return btnPrevPage; }
 
-    public FileDialog getFileDialog(){ return _fileDialog; }
+    public FileDialog getFileDialog(){ return fileDialog; }
 
     public FileDialog getLoadCsvFileDialog()
     {
-        _fileDialog.setMode( FileDialog.LOAD );
-        _fileDialog.setTitle( "Load Contact List" );
-        _fileDialog.setFilenameFilter( new FilenameFilter(){
+        fileDialog.setMode( FileDialog.LOAD );
+        fileDialog.setTitle( "Load Contact List" );
+        fileDialog.setFilenameFilter(new FilenameFilter(){
             public boolean accept( File dir, String name )
             {
                 return name.endsWith( ".csv" );
             }
         });
-        return _fileDialog;
+        return fileDialog;
     }
 
     public FileDialog getSaveCsvFileDialog()
     {
-        _fileDialog.setMode( FileDialog.SAVE );
-        _fileDialog.setTitle( "Save Contact List" );
-        _fileDialog.setFilenameFilter( new FilenameFilter(){
+        fileDialog.setMode( FileDialog.SAVE );
+        fileDialog.setTitle( "Save Contact List" );
+        fileDialog.setFilenameFilter(new FilenameFilter(){
             public boolean accept( File dir, String name )
             {
                 return name.endsWith( ".csv" );
             }
         });
-        return _fileDialog;
+        return fileDialog;
     }
 
     public FileDialog getLoadProjectFileDialog()
     {
-        _projectFileDialog.setMode( FileDialog.LOAD );
-        _fileDialog.setTitle( "Load Project" );
-        _projectFileDialog.setFilenameFilter( new FilenameFilter(){
+        projectFileDialog.setMode( FileDialog.LOAD );
+        fileDialog.setTitle( "Load Project" );
+        projectFileDialog.setFilenameFilter(new FilenameFilter(){
             public boolean accept( File dir, String name )
             {
                 return name.endsWith( ".sav" );
             }
         });
-        return _projectFileDialog;
+        return projectFileDialog;
     }
 
     public FileDialog getSaveProjectFileDialog()
     {
-        _projectFileDialog.setMode( FileDialog.SAVE );
-        _projectFileDialog.setTitle( "Save Project" );
-        _projectFileDialog.setFilenameFilter( new FilenameFilter(){
+        projectFileDialog.setMode( FileDialog.SAVE );
+        projectFileDialog.setTitle( "Save Project" );
+        projectFileDialog.setFilenameFilter(new FilenameFilter(){
             public boolean accept( File dir, String name )
             {
                 return name.endsWith( ".sav" );
             }
         });
-        return _projectFileDialog;
+        return projectFileDialog;
+    }
+
+    public void setStatus(String status){
+        lblStatus.setText(status);
+    }
+
+    public void setGoogleUser(String username){
+        lblGoogleUser.setText(username);
     }
 }
 

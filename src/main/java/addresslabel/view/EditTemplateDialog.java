@@ -1,30 +1,25 @@
 package addresslabel.view;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JLabel;
-import javax.swing.JButton;
-import javax.swing.JTextArea;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 
 import java.awt.*;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import addresslabel.Model;
 import addresslabel.Record;
 
 public class EditTemplateDialog extends BaseDialog
 {
-    //private Map<JButton, String> _insertBtns;
-    private Model _model;
-    private View _view;
-    private Record _record;
-    private JTextArea _txtTemplate;
+    private Model model;
+    private View view;
+    private Record record;
+    private JTextArea txtTemplate;
+    private JTextPane tpPreview;
 
     /**
      * @param model Model
@@ -33,12 +28,10 @@ public class EditTemplateDialog extends BaseDialog
      */
     public EditTemplateDialog( Model model, View view, Record record )
     {
-        super( view.getFrame(), "Edit Template", true, 450, 600 );
-        _model = model;
-        _view = view;
-        _record = record;
-
-        //_insertBtns = new HashMap<>();  // { button: label }
+        super( view.getFrame(), "Edit Template", true, 550, 600 );
+        this.model = model;
+        this.view = view;
+        this.record = record;
 
         JPanel content = new JPanel( new BorderLayout() );
 
@@ -48,11 +41,23 @@ public class EditTemplateDialog extends BaseDialog
         JPanel templPanel = new JPanel( new BorderLayout() );
         content.add( templPanel, BorderLayout.CENTER );
 
-        _txtTemplate = new JTextArea();
-        templPanel.add( new JScrollPane( _txtTemplate ), BorderLayout.NORTH );
+        txtTemplate = new JTextArea();
+        txtTemplate.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e);
+                refreshPreview();
+            }
+        });
+        templPanel.add( new JScrollPane(txtTemplate), BorderLayout.NORTH );
 
+        tpPreview = new JTextPane();
+        tpPreview.setEditable( false );
+        tpPreview.setBorder( BorderFactory.createCompoundBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ), BorderFactory.createCompoundBorder( BorderFactory.createLineBorder( Color.BLACK ), BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) ) ) );
+        templPanel.add(new JScrollPane(tpPreview), BorderLayout.CENTER);
 
         JPanel lblpanel = new JPanel( new GridBagLayout() ); //new GridLayout( Record.LABELS.length, 2 ) );
+        lblpanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         templPanel.add( new JScrollPane( lblpanel ), BorderLayout.WEST );
 
         GridBagConstraints c = new GridBagConstraints();
@@ -82,7 +87,7 @@ public class EditTemplateDialog extends BaseDialog
             lblpanel.add( btn, c );
         }
 
-        _txtTemplate.setText( _record.getTemplate() );
+        txtTemplate.setText( this.record.getTemplate() );
 
         JButton btnApplyAll = new JButton( "Apply Template to All Labels" );
         btnApplyAll.addActionListener( new ActionListener(){
@@ -97,18 +102,21 @@ public class EditTemplateDialog extends BaseDialog
             public void actionPerformed( ActionEvent e )
             {
                 apply();
-                _view.displayPage();
+                EditTemplateDialog.this.view.displayPage();
             }
         });
         setContent( content );
+
+        refreshPreview();
     }
 
 
     public void insertLabel( String lbl )
     {
         //_txtTemplate.getDocument().insertString( _txtTemplate.getCaretPosition(), s, null );
-        _txtTemplate.insert( "{" + lbl + "}", _txtTemplate.getCaretPosition() );
-        _txtTemplate.insert( lbl.equals( "city" )? ", ": " ", _txtTemplate.getCaretPosition() );
+        txtTemplate.insert( "{" + lbl + "}", txtTemplate.getCaretPosition() );
+        txtTemplate.insert( lbl.equals( "city" )? ", ": " ", txtTemplate.getCaretPosition() );
+        refreshPreview();
     }
 
 
@@ -120,9 +128,9 @@ public class EditTemplateDialog extends BaseDialog
 
     public void apply()
     {
-        String template = _txtTemplate.getText();
-        _record.setTemplate( template );
-        _view.displayPage();
+        String template = txtTemplate.getText();
+        record.setTemplate( template );
+        view.displayPage();
     }
 
 
@@ -133,12 +141,21 @@ public class EditTemplateDialog extends BaseDialog
             // self.initial_focus.focus_set()  # put focus back
             return;
         }
-        String template = _txtTemplate.getText();
-        for( Record record: _model.getRecords() )
+        String template = txtTemplate.getText();
+        for( Record record: model.getRecords() )
         {
             record.setTemplate( template );
         }
-        _view.displayPage();
+        view.displayPage();
+    }
+
+    private void refreshPreview(){
+        tpPreview.setText( "" );
+        if( record != null && record.isUsed() )
+        {
+            String template = txtTemplate.getText();
+            tpPreview.setText(record.format(template));
+        }
     }
 }
 

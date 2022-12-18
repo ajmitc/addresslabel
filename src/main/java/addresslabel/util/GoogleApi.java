@@ -1,85 +1,272 @@
 package addresslabel.util;
 
-/*
-import httplib2
+import addresslabel.Model;
+import addresslabel.Record;
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
+import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.store.DataStoreFactory;
+import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.services.people.v1.PeopleService;
+import com.google.api.services.people.v1.PeopleServiceScopes;
+import com.google.api.services.people.v1.model.*;
+//import com.google.api.services.plus.Plus;
+//import com.google.api.services.plus.model.PeopleFeed;
+//import com.google.api.services.plus.model.Person;
 
-from apiclient.discovery import build
-from oauth2client.file import Storage
-from oauth2client.client import OAuth2WebServerFlow
-from oauth2client.tools import run_flow
+import javax.swing.*;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.GeneralSecurityException;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-#import atom.data
-#import gdata.data
-#import gdata.contacts.client
-#import gdata.contacts.data
-*/
+public class GoogleApi {
+    private static final Logger logger = Logger.getLogger(GoogleApi.class.getName());
 
-public class GoogleApi
-{
-    // CLIENT_ID = "125032623953-o2etmsbq4pk5g0rki7bf446bq72cnv7t.apps.googleusercontent.com"
-    public static final String CLIENT_ID = "895944253718-8l4b45m4flu7fts1iu5gv09jc2if4b54.apps.googleusercontent.com";
-    // API_KEY   = "AIzaSyBscpOqaRc-kUeLYKHng3yoBrr3Uwuwsxc"
-    public static final String CLIENT_SECRET = "QXKikrXpc5IUxwtJNtQq9FY-";
+    private static final String APPLICATION_NAME = "AddressLabel/1.0";
+    private static final String TOKENS_DIRECTORY_PATH = System.getProperty("user.home") + "/.addresslabel/tokens";
 
-    public GoogleApi()
-    {
-        /*
-        GoogleCredential credential = new GoogleCredential().setAccessToken(accessToken);
-        Plus plus = new Plus.builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance(), credential)
-            .setApplicationName("Google-PlusSample/1.0")
-                .build();
-                */
+    /**
+     * Global instance of the scopes required by this quickstart.
+     * If modifying these scopes, delete your previously saved tokens/ folder.
+     */
+    private static final List<String> SCOPES = Arrays.asList(PeopleServiceScopes.CONTACTS_READONLY);
+    private static final String CREDENTIALS_FILE_PATH = "/client_secrets.json";
+    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+
+    private Model model;
+    private PeopleService service = null;
+
+    public GoogleApi(Model model) {
+        this.model = model;
     }
 
-
-    /*
-    def get_people_service( self ):
-        # Set up a Flow object to be used if we need to authenticate. This
-        # sample uses OAuth 2.0, and we set up the OAuth2WebServerFlow with
-        # the information it needs to authenticate. Note that it is called
-        # the Web Server Flow, but it can also handle the flow for
-        # installed applications.
-        #
-        # Go to the Google API Console, open your application's
-        # credentials page, and copy the client ID and client secret.
-        # Then paste them into the following code.
-        FLOW = OAuth2WebServerFlow(
-            client_id=self.CLIENT_ID,
-            client_secret=self.CLIENT_SECRET,
-            scope='https://www.googleapis.com/auth/contacts.readonly',
-            user_agent='addresslabel/%s' % self.app.VERSION if self.app is not None else "1.0.0" )
-
-        # If the Credentials don't exist or are invalid, run through the
-        # installed application flow. The Storage object will ensure that,
-        # if successful, the good Credentials will get written back to a
-        # file.
-        storage = Storage( 'info.dat' )
-        credentials = storage.get()
-        if credentials is None or credentials.invalid == True:
-            credentials = run_flow( FLOW, storage )
-
-        # Create an httplib2.Http object to handle our HTTP requests and
-        # authorize it with our good Credentials.
-        http = httplib2.Http()
-        http = credentials.authorize( http )
-
-        # Build a service object for interacting with the API. To get an API key for
-        # your application, visit the Google API Console
-        # and look at your application's credentials page.
-        people_service = build( serviceName='people', version='v1', http=http )
-        return people_service
+    private PeopleService initService() throws GeneralSecurityException, IOException, ExecutionException, InterruptedException, TimeoutException {
+        if (service == null) {
+            final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+            service =
+                    new PeopleService.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                            .setApplicationName(APPLICATION_NAME)
+                            .build();
 
 
-    def get_contact_list( self, email, passwd ):
-        people_service = self.get_people_service()
-        connections = people_service.people().connections().list( 'people/me' )
-        return connections
+             /*
+            SwingWorker<PeopleService, Void> worker = new SwingWorker<PeopleService, Void>() {
+                @Override
+                protected PeopleService doInBackground() throws Exception {
+                    PeopleService service =
+                            new PeopleService.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                                    .setApplicationName(APPLICATION_NAME)
+                                    .build();
+                    return service;
+                }
+            };
+            try {
+                service = worker.get(2, TimeUnit.MINUTES);
+            }
+            catch(TimeoutException timeoutException){
+                logger.severe("Received timeout authenticating with Google");
+                service = null;
+            }
+             */
+        }
+        return service;
+    }
 
+    public List<Record> pullGoogleContacts(String contactGroup){
+        List<Record> records = new ArrayList<>();
 
+        try {
+            List<Person> contacts = requestContacts(contactGroup);
 
-if __name__ == "__main__":
-    api = GoogleApi( None )
-    api.get_contact_list( "ajmitc@gmail.com", "B0@rdG@m35" )
-    */
+            for (Person person : contacts) {
+                Record record = person2Record(person);
+                if (record != null)
+                    records.add(record);
+            }
+        }
+        catch (Exception e){
+            logger.log(Level.SEVERE, "Unable to request Google Contacts", e);
+        }
+
+        return records;
+    }
+
+    public Map<String, String> requestContactGroups() throws GeneralSecurityException, IOException, ExecutionException, InterruptedException, TimeoutException {
+        initService();
+
+        if (service == null)
+            return new HashMap<>();
+
+        ListContactGroupsResponse contactGroups =
+                service.contactGroups()
+                        .list()
+                        .execute();
+
+        Map<String, String> retMap = new HashMap<>();
+        for (ContactGroup contactGroup: contactGroups.getContactGroups()){
+            logger.info("Contact Group: '" + contactGroup.getName() + "' (" + contactGroup.getResourceName() + ")");
+            /*
+            if (contactGroup.getMemberResourceNames() != null && contactGroup.getMemberResourceNames().size() > 0) {
+                for (String resName : contactGroup.getMemberResourceNames()) {
+                    logger.info("   Member Resource Name: '" + resName + "'");
+                }
+            }
+             */
+            retMap.put(contactGroup.getName(), contactGroup.getResourceName());
+        }
+
+        return retMap;
+    }
+
+    public List<Person> requestContacts(final String contactGroup) throws GeneralSecurityException, IOException, ExecutionException, InterruptedException, TimeoutException {
+        // Build a new authorized API client service.
+        initService();
+
+        if (service == null)
+            return new ArrayList<>();
+
+        ListConnectionsResponse response = service.people().connections()
+                .list("people/me")
+                //.setPageSize(10)
+                .setPersonFields("names,addresses,memberships")
+                //.setSources(Arrays.asList(SourceType.))
+                .execute();
+
+        // Print display name of connections if available.
+        List<Person> connections = response.getConnections();
+        if (connections != null && connections.size() > 0) {
+            logger.info("=====  Received all Contacts =====");
+            for (Person person : connections) {
+                List<Name> names = person.getNames();
+                if (names != null && names.size() > 0) {
+                    logger.info("Name: " + person.getNames().get(0).getDisplayName());
+                } else {
+                    logger.info("No names available for connection.");
+                }
+                List<Address> addresses = person.getAddresses();
+                if (addresses != null && addresses.size() > 0){
+                    logger.info("  Address: " + person.getAddresses().get(0).getFormattedValue());
+                }
+                List<Membership> memberships = person.getMemberships();
+                if (memberships != null && memberships.size() > 0){
+                    logger.info("  Memberships: " + String.join(", ", memberships.stream().map(m -> m.getContactGroupMembership().getContactGroupResourceName()).collect(Collectors.toList())));
+                }
+            }
+            connections =
+                    connections.stream()
+                            .filter(connection ->
+                                    connection.getMemberships().stream()
+                                            .anyMatch(m ->
+                                                    m.getContactGroupMembership().getContactGroupResourceName().equalsIgnoreCase(contactGroup)))
+                            .collect(Collectors.toList());
+            logger.info("=====  Filtered Contacts =====");
+            for (Person person : connections) {
+                List<Name> names = person.getNames();
+                if (names != null && names.size() > 0) {
+                    logger.info("Name: " + person.getNames().get(0).getDisplayName());
+                } else {
+                    logger.info("No names available for connection.");
+                }
+                List<Address> addresses = person.getAddresses();
+                if (addresses != null && addresses.size() > 0){
+                    logger.info("  Address: " + person.getAddresses().get(0).getFormattedValue());
+                }
+                List<Membership> memberships = person.getMemberships();
+                if (memberships != null && memberships.size() > 0){
+                    logger.info("  Memberships: " + String.join(", ", memberships.stream().map(m -> m.getContactGroupMembership().getContactGroupResourceName()).collect(Collectors.toList())));
+                }
+            }
+        } else {
+            System.out.println("No connections found.");
+        }
+        return connections;
+    }
+
+    /**
+     * Creates an authorized Credential object.
+     *
+     * @param HTTP_TRANSPORT The network HTTP Transport.
+     * @return An authorized Credential object.
+     * @throws IOException If the credentials.json file cannot be found.
+     */
+    private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT)
+            throws IOException {
+        // Load client secrets.
+        InputStream in = GoogleApi.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        if (in == null) {
+            throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
+        }
+        GoogleClientSecrets clientSecrets =
+                GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+
+        // Build flow and trigger user authorization request.
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
+                .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(TOKENS_DIRECTORY_PATH)))
+                .setAccessType("offline")
+                .build();
+        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+        return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+    }
+
+    private Record person2Record(Person person){
+        Record record = new Record(model.getDefaultTemplate());
+
+        List<Name> names = person.getNames();
+        List<Address> addresses = person.getAddresses();
+
+        if (names == null){
+            return null;
+        }
+
+        for (Name name : names) {
+            record.getData().put(Record.TITLE, name.getHonorificPrefix());
+            record.getData().put(Record.NAME, name.getDisplayName());
+            record.getData().put(Record.FIRST_NAME, name.getGivenName());
+            record.getData().put(Record.LAST_NAME, name.getFamilyName());
+            record.getData().put(Record.SUFFIX, name.getHonorificSuffix());
+            break;
+        }
+
+        if (addresses != null) {
+            for (Address address : addresses) {
+                record.getData().put(Record.ADDRESS, address.getFormattedValue());
+                record.getData().put(Record.ADDRESS_STREET_1, address.getStreetAddress());
+                record.getData().put(Record.ADDRESS_STREET_2, address.getExtendedAddress());
+                record.getData().put(Record.ADDRESS_CITY, address.getCity());
+                record.getData().put(Record.ADDRESS_STATE, address.getRegion());
+                record.getData().put(Record.ADDRESS_COUNTRY, address.getCountry());
+                record.getData().put(Record.ADDRESS_ZIP, address.getPostalCode());
+                break;
+            }
+        }
+
+        return record;
+    }
+
+    public void logout() throws IOException {
+        // Remove tokens directory
+        Path pathToBeDeleted = new File(TOKENS_DIRECTORY_PATH).toPath();
+        Files.walk(pathToBeDeleted)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
+    }
 }
 

@@ -4,32 +4,49 @@ apply plugin: 'java'
 version = "1.0.0"
 
 repositories {
+    /*
     flatDir{
         dirs{
             "lib"
         }
     }
+     */
 
     mavenCentral()
 }
 
 dependencies {
-    compile "com.opencsv:opencsv:4.0"
-    compile "org.apache.pdfbox:pdfbox:2.0.17"
-    compile fileTree( dir: "lib", include: ["*.jar"] )
+    implementation "com.opencsv:opencsv:4.0"
+    implementation "org.apache.pdfbox:pdfbox:2.0.17"
+
+    implementation 'com.google.apis:google-api-services-people:v1-rev20210903-1.32.1'
+
+    implementation 'com.google.api-client:google-api-client:1.32.1'
+    //implementation 'com.google.api-client:google-api-client-appengine:2.0.0'
+
+    implementation 'com.google.oauth-client:google-oauth-client:1.30.4'
+    implementation 'com.google.oauth-client:google-oauth-client-servlet:1.30.4'
+    implementation 'com.google.oauth-client:google-oauth-client-appengine:1.30.4'
+
+    implementation 'com.google.apis:google-api-services-plus:v1-rev530-1.23.0'
+    implementation 'com.google.http-client:google-http-client-jackson2:1.23.0'
+    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
+
+    //implementation fileTree( dir: "lib", include: ["*.jar"] )
 }
 
 task dist(type: Jar) {
+    duplicatesStrategy = 'exclude'
     manifest {
         attributes (
             'Implementation-Title': 'Address Label Easy Button',
             'Implementation-Version': version,
-            "Class-Path": configurations.compile.collect { it.getName() }.join(' '),
+            "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' '),
             'Main-Class': 'addresslabel.Main'
         )
     } 
-    baseName = "AddressLabelEasyButton"
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    baseName = "addresslabel"
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
     with jar
 }
@@ -38,6 +55,6 @@ task dist(type: Jar) {
 task run(type: Exec) {
     dependsOn build
     executable "java"
-    args "-jar", "build/libs/AddressLabelEasyButton-1.0.0.jar"
+    args "-jar", "build/libs/addresslabel-1.0.0.jar"
 }
 

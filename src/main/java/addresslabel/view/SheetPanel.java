@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import addresslabel.Model;
 import addresslabel.Record;
 import addresslabel.util.Logger;
-import addresslabel.template.Template;
 
 public class SheetPanel extends JPanel
 {

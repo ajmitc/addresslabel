@@ -63,14 +63,15 @@ public class Record
 
         // Label mapping
         LABEL_MAPPING.put( ADDRESS,          new String[]{ "address" } );
-        LABEL_MAPPING.put( ADDRESS_STREET_1, new String[]{ "street", "street 1" } );
-        LABEL_MAPPING.put( ADDRESS_STREET_2, new String[]{ "street 2" } );
-        LABEL_MAPPING.put( ADDRESS_CITY,     new String[]{ "city" } );
-        LABEL_MAPPING.put( ADDRESS_STATE,    new String[]{ "state" } );
-        LABEL_MAPPING.put( ADDRESS_ZIP,      new String[]{ "zip", "zipcode" } );
-        LABEL_MAPPING.put( ADDRESS_COUNTRY,  new String[]{ "country" } );
+        LABEL_MAPPING.put( ADDRESS_STREET_1, new String[]{ "street", "street 1", "Address 1 - Street", "Address 2 - Street", "Other Street" } );
+        LABEL_MAPPING.put( ADDRESS_STREET_2, new String[]{ "street 2", "Address 1 - Street 2", "Address 2 - Street 2", "Other Street 2" } );
+        LABEL_MAPPING.put( ADDRESS_CITY,     new String[]{ "city", "Address 1 - City", "Address 2 - City", "Other City" } );
+        LABEL_MAPPING.put( ADDRESS_STATE,    new String[]{ "state", "Address 1 - Region", "Address 2 - Region", "Other State" } );
+        LABEL_MAPPING.put( ADDRESS_ZIP,      new String[]{ "zip", "zipcode", "Address 1 - Postal Code", "Address 2 - Postal Code", "Other Postal Code" } );
+        LABEL_MAPPING.put( ADDRESS_COUNTRY,  new String[]{ "country", "Address 1 - Country", "Other Country" } );
 
         USA_VALUES.add( "" );
+        USA_VALUES.add( "us" );
         USA_VALUES.add( "usa" );
         USA_VALUES.add( "united states of america" );
 
@@ -172,15 +173,19 @@ public class Record
 
     private void _mapRecord( Map<String, String> record )
     {
-        for( String h: record.keySet() )
+        for( String key: record.keySet() )
         {
-            _data.put( _mapHeader( h ), record.get( h ) );
+            String value = record.get(key);
+            String mappedKey = mapRecordKey(key);
+            if (value != null && !value.trim().isEmpty())
+                _data.put(mappedKey, value);
+            _data.put(key, value);
         }
         _autoFillInFields();
     }
 
 
-    private String _mapHeader( String header )
+    private String mapRecordKey(String header )
     {
         header = header.trim();
         for( String lbl: LABELS )
@@ -298,7 +303,7 @@ public class Record
     }
 
 
-    private String _format( String template )
+    public String format(String template)
     {
         for( String lbl: LABELS )
         {
@@ -309,8 +314,12 @@ public class Record
                 else
                     template = template.replaceAll( "\\{" + lbl + "\\}", "" );
             }
-            else
-                template = template.replaceAll( "\\{" + lbl + "\\}", _data.get( lbl ) );
+            else{
+                String replacementValue = _data.containsKey(lbl)? _data.get(lbl): "";
+                if (replacementValue == null)
+                    replacementValue = "";
+                template = template.replaceAll( "\\{" + lbl + "\\}", replacementValue);
+            }
         }
         template = template.replaceAll( REGEXP_MATCH_LABEL_TAG, "" );
         while( template.indexOf( "  " ) >= 0 )
@@ -325,7 +334,7 @@ public class Record
     public String getDisplay()
     {
         if( _display == null )
-            _display = isUsed()? _format( _template != null? _template: _defTemplate ): "";
+            _display = isUsed()? format( _template != null? _template: _defTemplate ): "";
         return _display;
     }
 
