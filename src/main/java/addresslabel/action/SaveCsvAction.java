@@ -33,8 +33,10 @@ public class SaveCsvAction extends AbstractAction
     public void actionPerformed( ActionEvent e )
     {
         if (model.getLoadedFilepath() != null && !saveas) {
-            model.writeCsv();
-            view.setStatus("CSV file saved");
+            if (model.writeCsv())
+                view.setStatus("Saved labels to " + model.getLoadedFilepath());
+            else
+                view.setStatus("Failed to save labels to " + model.getLoadedFilepath());
         }
         else
         {
@@ -44,8 +46,10 @@ public class SaveCsvAction extends AbstractAction
             if( filepath != null )
             {
                 model.setLoadedFilepath( filepath );
-                model.writeCsv();
-                view.setStatus("CSV file saved");
+                if (model.writeCsv())
+                    view.setStatus("Saved labels to " + model.getLoadedFilepath());
+                else
+                    view.setStatus("Failed to save labels to " + model.getLoadedFilepath());
             }
         }
     }
