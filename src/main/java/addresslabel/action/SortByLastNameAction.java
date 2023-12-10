@@ -8,26 +8,22 @@ import java.awt.event.KeyEvent;
 import addresslabel.Model;
 import addresslabel.Record;
 import addresslabel.view.View;
-import addresslabel.view.HelpDialog;
 
-public class SortByLastNameAction extends AbstractAction
-{
-    private Model _model;
-    private View _view;
+public class SortByLastNameAction extends AbstractAction {
+    private Model model;
+    private View view;
 
-    public SortByLastNameAction( Model model, View view )
-    {
-        super( "Sort By Last Name" );
-        _model = model;
-        _view  = view;
-        putValue( Action.SHORT_DESCRIPTION, "Sort Records by Last Name" );
-        putValue( Action.MNEMONIC_KEY, new Integer( KeyEvent.VK_L ) );
+    public SortByLastNameAction(Model model, View view) {
+        super("Sort By Last Name");
+        this.model = model;
+        this.view = view;
+        putValue(Action.SHORT_DESCRIPTION, "Sort Records by Last Name");
+        putValue(Action.MNEMONIC_KEY, KeyEvent.VK_L);
     }
 
 
-    public void actionPerformed( ActionEvent e )
-    {
-        _model.sortRecords( Record.LAST_NAME );
-        _view.refresh();
+    public void actionPerformed(ActionEvent e) {
+        model.sortRecords(Record.LAST_NAME);
+        view.refresh();
     }
 }

@@ -53,7 +53,7 @@ public class View
         filemenu.add( new SaveProjectAction(this.model, this, false ) );
         filemenu.add( new SaveProjectAction(this.model, this, true ) );
         filemenu.addSeparator();
-        filemenu.add( new ExportToPdfAction(this.model, this ) );
+        filemenu.add( new ExportPDFAction(this.model, this ) );
         filemenu.add( new PrintLabelsAction(this.model, this ) );
         filemenu.addSeparator();
         filemenu.add( new ExitAction(this.model, this ) );
@@ -111,7 +111,7 @@ public class View
         toolbar.add( new OpenCsvAction(this.model, this ) );
         toolbar.add( new SaveCsvAction(this.model, this, false ) );
         toolbar.addSeparator();
-        toolbar.add( new ExportToPdfAction(this.model, this ) );
+        toolbar.add( new ExportPDFAction(this.model, this ) );
         toolbar.add( new PrintLabelsAction(this.model, this ) );
         toolbar.addSeparator();
         toolbar.add( new JLabel( "Search: " ) );

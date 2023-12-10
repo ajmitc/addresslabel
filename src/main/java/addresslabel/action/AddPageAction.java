@@ -8,25 +8,22 @@ import java.awt.event.KeyEvent;
 import addresslabel.Model;
 import addresslabel.view.View;
 
-public class AddPageAction extends AbstractAction
-{
-    private Model _model;
-    private View _view;
+public class AddPageAction extends AbstractAction {
+    private Model model;
+    private View view;
 
-    public AddPageAction( Model model, View view )
-    {
-        super( "Add Page" );
-        putValue( Action.SHORT_DESCRIPTION, "Add a page" );
-        putValue( Action.MNEMONIC_KEY, new Integer( KeyEvent.VK_A ) );
-        _model = model;
-        _view  = view;
+    public AddPageAction(Model model, View view) {
+        super("Add Page");
+        putValue(Action.SHORT_DESCRIPTION, "Add a page");
+        putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
+        this.model = model;
+        this.view = view;
     }
 
 
-    public void actionPerformed( ActionEvent e )
-    {
-        _model.addEmptyRecords( _model.getRecordsPerPage() );
-        _view.refresh();
+    public void actionPerformed(ActionEvent e) {
+        model.addEmptyRecords(model.getRecordsPerPage());
+        view.refresh();
     }
 }
 

@@ -10,24 +10,21 @@ import addresslabel.Model;
 import addresslabel.view.View;
 import addresslabel.view.AboutDialog;
 
-public class DisplayAboutAction extends AbstractAction
-{
-    private Model _model;
-    private View _view;
+public class DisplayAboutAction extends AbstractAction {
+    private Model model;
+    private View view;
 
-    public DisplayAboutAction( Model model, View view )
-    {
-        super( "About" );
-        putValue( Action.SHORT_DESCRIPTION, "Display About dialog" );
-        putValue( Action.MNEMONIC_KEY, new Integer( KeyEvent.VK_A ) );
-        _model = model;
-        _view = view;
+    public DisplayAboutAction(Model model, View view) {
+        super("About");
+        putValue(Action.SHORT_DESCRIPTION, "Display About dialog");
+        putValue(Action.MNEMONIC_KEY, KeyEvent.VK_A);
+        this.model = model;
+        this.view = view;
     }
 
-    public void actionPerformed( ActionEvent e )
-    {
-        AboutDialog d = new AboutDialog( _view.getFrame() );
-        d.setVisible( true );
+    public void actionPerformed(ActionEvent e) {
+        AboutDialog d = new AboutDialog(view.getFrame());
+        d.setVisible(true);
     }
 }
 

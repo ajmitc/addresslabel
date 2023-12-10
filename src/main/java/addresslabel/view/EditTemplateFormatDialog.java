@@ -5,7 +5,7 @@ import addresslabel.Model;
 import javax.swing.*;
 import java.awt.*;
 
-public class ExportToPDFDialog extends BaseDialog {
+public class EditTemplateFormatDialog extends BaseDialog {
     private Model model;
     private View view;
 
@@ -14,8 +14,13 @@ public class ExportToPDFDialog extends BaseDialog {
     private JCheckBox drawLabelBorder;
     private JCheckBox drawMargins;
 
-    public ExportToPDFDialog(Model model, View view){
-        super(view.getFrame(), "Export to PDF", true, 400, 200);
+    public static enum EditTemplateSettingsDialogType {
+        EXPORT,
+        PRINT
+    }
+
+    public EditTemplateFormatDialog(Model model, View view, EditTemplateSettingsDialogType type) {
+        super(view.getFrame(), type == EditTemplateSettingsDialogType.EXPORT ? "Export to PDF" : "Template Format", true, 400, 200);
         this.model = model;
         this.view = view;
 
@@ -23,7 +28,7 @@ public class ExportToPDFDialog extends BaseDialog {
         fontSize = new JSpinner();
         ((SpinnerNumberModel) fontSize.getModel()).setMinimum(1);
         ((SpinnerNumberModel) fontSize.getModel()).setMaximum(100);
-        fontSize.setValue(new Integer(model.getTemplate().getFontSize()));
+        fontSize.setValue(model.getTemplate().getFontSize());
 
         drawLabelBorder = new JCheckBox("Draw Label Border");
         drawLabelBorder.setSelected(model.getTemplate().shouldDrawLabelBorder());
@@ -46,22 +51,22 @@ public class ExportToPDFDialog extends BaseDialog {
         contentPanel.add(drawMargins);
 
         setContent(contentPanel);
-        setCloseText("Export");
+        setCloseText(type == EditTemplateSettingsDialogType.EXPORT ? "Export" : "Print");
     }
 
-    public String getFontName(){
+    public String getFontName() {
         return fontName.getText();
     }
 
-    public int getFontSize(){
+    public int getFontSize() {
         return (Integer) fontSize.getValue();
     }
 
-    public boolean shouldDrawLabelBorder(){
+    public boolean shouldDrawLabelBorder() {
         return drawLabelBorder.isSelected();
     }
 
-    public boolean shouldDrawMargins(){
+    public boolean shouldDrawMargins() {
         return drawMargins.isSelected();
     }
 }
