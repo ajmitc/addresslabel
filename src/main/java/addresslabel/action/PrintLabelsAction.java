@@ -28,7 +28,7 @@ public class PrintLabelsAction extends AbstractAction {
 
     public void actionPerformed(ActionEvent e) {
         EditTemplateFormatDialog dialog =
-                new EditTemplateFormatDialog(model, view, EditTemplateFormatDialog.EditTemplateSettingsDialogType.EXPORT);
+                new EditTemplateFormatDialog(model, view, EditTemplateFormatDialog.EditTemplateSettingsDialogType.PRINT);
         dialog.setVisible(true);
 
         if (dialog.isCanceled())

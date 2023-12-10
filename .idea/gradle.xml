@@ -12,6 +12,26 @@
           </set>
         </option>
       </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/../gaslands-gdx" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/../gaslands-gdx" />
+            <option value="$PROJECT_DIR$/../gaslands-gdx/core" />
+            <option value="$PROJECT_DIR$/../gaslands-gdx/desktop" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/../libgdx-demo-cuboc-master" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/../libgdx-demo-cuboc-master" />
+          </set>
+        </option>
+      </GradleProjectSettings>
     </option>
   </component>
 </project>
