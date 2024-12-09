@@ -8,9 +8,11 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.Strings;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.people.v1.PeopleService;
 import com.google.api.services.people.v1.PeopleServiceScopes;
@@ -80,6 +82,19 @@ public class GoogleApi {
         return service;
     }
 
+    public String getLoggedInUserEmail() throws IOException, GeneralSecurityException, ExecutionException, InterruptedException, TimeoutException {
+        initService();
+
+        if (service == null)
+            return null;
+
+        Person profile =
+                service.people().get("people/me")
+                        .setPersonFields("names,emailAddresses")
+                        .execute();
+        return profile.getEmailAddresses().get(0).getValue();
+    }
+
     public List<Record> pullGoogleContacts(String contactGroup){
         List<Record> records = new ArrayList<>();
 
@@ -133,42 +148,72 @@ public class GoogleApi {
         if (service == null)
             return new ArrayList<>();
 
-        ListConnectionsResponse response = service.people().connections()
-                .list("people/me")
-                //.setPageSize(10)
-                .setPersonFields("names,addresses,memberships")
-                //.setSources(Arrays.asList(SourceType.))
-                .execute();
+        List<Person> allContacts = new ArrayList<>();
+        try {
+            ListConnectionsResponse response = service.people().connections()
+                    .list("people/me")
+                    //.setPageSize(10)
+                    .setPersonFields("names,addresses,memberships")
+                    .setSources(List.of("READ_SOURCE_TYPE_CONTACT"))
+                    .execute();
+
+            for (Person contact : response.getConnections()) {
+                allContacts.add(contact);
+            }
+            logger.info(String.format("=====  Received %s/%s Contacts for group people/me =====", allContacts.size(), response.getTotalItems(), contactGroup));
+
+            while (response.getNextPageToken() != null) {
+                response = service.people().connections()
+                        .list("people/me")
+                        //.setPageSize(10)
+                        .setPersonFields("names,addresses,memberships")
+                        .setSources(List.of("READ_SOURCE_TYPE_CONTACT"))
+                        .setPageToken(response.getNextPageToken())
+                        .execute();
+
+                for (Person contact : response.getConnections()) {
+                    allContacts.add(contact);
+                }
+                logger.info(String.format("=====  Received %s/%s Contacts for group people/me =====", allContacts.size(), response.getTotalItems(), contactGroup));
+            }
+        }
+        catch(GoogleJsonResponseException e){
+            logger.severe(e.getMessage());
+        }
 
         // Print display name of connections if available.
-        List<Person> connections = response.getConnections();
-        if (connections != null && connections.size() > 0) {
-            logger.info("=====  Received all Contacts =====");
-            for (Person person : connections) {
+        if (!allContacts.isEmpty()) {
+            for (Person person : allContacts) {
                 List<Name> names = person.getNames();
-                if (names != null && names.size() > 0) {
+                if (names != null && !names.isEmpty()) {
                     logger.info("Name: " + person.getNames().get(0).getDisplayName());
                 } else {
                     logger.info("No names available for connection.");
                 }
                 List<Address> addresses = person.getAddresses();
-                if (addresses != null && addresses.size() > 0){
+                if (addresses != null && !addresses.isEmpty()){
                     logger.info("  Address: " + person.getAddresses().get(0).getFormattedValue());
                 }
                 List<Membership> memberships = person.getMemberships();
-                if (memberships != null && memberships.size() > 0){
-                    logger.info("  Memberships: " + String.join(", ", memberships.stream().map(m -> m.getContactGroupMembership().getContactGroupResourceName()).collect(Collectors.toList())));
+                if (memberships != null && !memberships.isEmpty()){
+                    logger.info("  Memberships: " +
+                            memberships.stream()
+                                    .map(m ->
+                                            m.getContactGroupMembership().getContactGroupId() + ": " +
+                                            m.getContactGroupMembership().getContactGroupResourceName()
+                                    )
+                                    .collect(Collectors.joining(", ")));
                 }
             }
-            connections =
-                    connections.stream()
+            allContacts =
+                    allContacts.stream()
                             .filter(connection ->
                                     connection.getMemberships().stream()
                                             .anyMatch(m ->
                                                     m.getContactGroupMembership().getContactGroupResourceName().equalsIgnoreCase(contactGroup)))
                             .collect(Collectors.toList());
-            logger.info("=====  Filtered Contacts =====");
-            for (Person person : connections) {
+            logger.info(String.format("=====  Filtered Contacts for %s =====", contactGroup));
+            for (Person person : allContacts) {
                 List<Name> names = person.getNames();
                 if (names != null && names.size() > 0) {
                     logger.info("Name: " + person.getNames().get(0).getDisplayName());
@@ -187,7 +232,7 @@ public class GoogleApi {
         } else {
             System.out.println("No connections found.");
         }
-        return connections;
+        return allContacts;
     }
 
     /**
@@ -247,6 +292,53 @@ public class GoogleApi {
                 record.getData().put(Record.ADDRESS_ZIP, address.getPostalCode());
                 break;
             }
+        }
+
+        // Make sure the values are well-formed
+        for (String key: record.getData().keySet()){
+            if (record.getData().get(key) != null)
+                record.getData().put(key, record.getData().get(key).trim());
+        }
+
+        // check if the city is blank, but the state is "city, state"
+        if (Strings.isNullOrEmpty(record.getData().get(Record.ADDRESS_CITY)) &&
+                !Strings.isNullOrEmpty(record.getData().get(Record.ADDRESS_STATE)) &&
+                record.getData().get(Record.ADDRESS_STATE).contains(",")) {
+            String citystate = record.getData().get(Record.ADDRESS_STATE);
+            String[] parts = citystate.split(",");
+            record.getData().put(Record.ADDRESS_CITY, parts[0].trim());
+            record.getData().put(Record.ADDRESS_STATE, parts[1].trim());
+        }
+
+        // check if street1 is blank, but address is not, then try to parse the address
+        if (Strings.isNullOrEmpty(Record.ADDRESS_STREET_1) &&
+                !Strings.isNullOrEmpty(record.getData().get(Record.ADDRESS))) {
+            Map<String, String> parsedAddress = AddressParser.parse(record.getData().get(Record.ADDRESS));
+            if (parsedAddress != null){
+                record.getData().put(Record.ADDRESS_STREET_1, parsedAddress.get(Record.ADDRESS_STREET_1).trim());
+
+                if (Strings.isNullOrEmpty(record.getData().get(Record.ADDRESS_CITY)) && parsedAddress.containsKey(Record.ADDRESS_CITY)) {
+                    record.getData().put(Record.ADDRESS_CITY, parsedAddress.get(Record.ADDRESS_CITY).trim());
+                }
+                if (Strings.isNullOrEmpty(record.getData().get(Record.ADDRESS_STATE)) && parsedAddress.containsKey(Record.ADDRESS_STATE)) {
+                    record.getData().put(Record.ADDRESS_STATE, parsedAddress.get(Record.ADDRESS_STATE).trim());
+                }
+                if (Strings.isNullOrEmpty(record.getData().get(Record.ADDRESS_ZIP)) && parsedAddress.containsKey(Record.ADDRESS_ZIP)) {
+                    record.getData().put(Record.ADDRESS_ZIP, parsedAddress.get(Record.ADDRESS_ZIP).trim());
+                }
+                if (Strings.isNullOrEmpty(record.getData().get(Record.ADDRESS_COUNTRY)) && parsedAddress.containsKey(Record.ADDRESS_COUNTRY)) {
+                    record.getData().put(Record.ADDRESS_COUNTRY, parsedAddress.get(Record.ADDRESS_COUNTRY).trim());
+                }
+            }
+        }
+
+        // check if the street1 contains more than just the street ie. "123 myroad st, city, state zip"
+        if (!Strings.isNullOrEmpty(record.getData().get(Record.ADDRESS_STREET_1)) &&
+                record.getData().get(Record.ADDRESS_STREET_1).indexOf(',') > 0) {
+            record.getData().put(
+                    Record.ADDRESS_STREET_1,
+                    record.getData().get(Record.ADDRESS_STREET_1)
+                            .substring(0, record.getData().get(Record.ADDRESS_STREET_1).indexOf(',')).trim());
         }
 
         return record;

@@ -32,12 +32,21 @@ public class ImportGoogleContactsAction extends AbstractAction
 
     public void actionPerformed( ActionEvent e )
     {
+        /*
+        try {
+            String emailAddress = model.getGoogleApi().getLoggedInUserEmail();
+            view.setGoogleUser("Logged in as " + emailAddress);
+        }
+        catch (Exception ex){
+            logger.severe(ex.getMessage());
+        }
+         */
         String selectedGroup = null;
         try {
+            view.setGoogleUser("Logged in");
             // Group Name -> ResourceName
             Map<String, String> contactGroups = model.getGoogleApi().requestContactGroups();
-            view.setGoogleUser("Logged in");
-            logger.info("Contact Groups: " + contactGroups.keySet().stream().collect(Collectors.joining(", ")));
+            logger.info("Contact Groups: " + String.join(", ", contactGroups.keySet()));
             JComboBox comboBox = new JComboBox(contactGroups.keySet().toArray(new String[0]));
             comboBox.setSelectedIndex(0);
             JOptionPane.showMessageDialog(view.getFrame(), comboBox, "Select Contact Group", JOptionPane.QUESTION_MESSAGE);
