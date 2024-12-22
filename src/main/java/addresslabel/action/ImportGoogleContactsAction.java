@@ -13,14 +13,13 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class ImportGoogleContactsAction extends AbstractAction
 {
     private static final Logger logger = Logger.getLogger(ImportGoogleContactsAction.class.getName());
 
-    private Model model;
-    private View view;
+    private final Model model;
+    private final View view;
 
     public ImportGoogleContactsAction(Model model, View view )
     {

@@ -5,11 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9bf4c265-cada-4488-b85e-184856aabec4" name="Changes" comment="Updates">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/addresslabel/action/PrintLabelsAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/addresslabel/action/PrintLabelsAction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/addresslabel/Model.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/addresslabel/Model.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/addresslabel/action/ImportGoogleContactsAction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/addresslabel/action/ImportGoogleContactsAction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/addresslabel/template/Avery5160LabelSheetTemplate.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/addresslabel/template/Avery5160LabelSheetTemplate.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/addresslabel/template/LabelSheetTemplate.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/addresslabel/template/LabelSheetTemplate.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/addresslabel/util/GoogleApi.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/addresslabel/util/GoogleApi.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/addresslabel/view/View.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/addresslabel/view/View.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,30 +52,52 @@
       </state>
     </system>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "ajmitc"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/ajmitc/addresslabel.git",
+    "accountId": "bdc4d1d5-7b44-4e25-b74c-7d9e29c80087"
+  }
+}]]></component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 3
+}]]></component>
   <component name="ProjectId" id="24fpgPKNIOPjrMf2blc5oJmKD5E" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
-    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
-    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="nodejs_package_manager_path" value="npm" />
-    <property name="project.structure.last.edited" value="Project" />
-    <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.0" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Upgrade Gradle wrapper.executor": "Run",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/main/resources" />
@@ -107,6 +131,7 @@
       <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
     <configuration name="gaslands-gdx [processTestResources]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -128,6 +153,7 @@
       <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
     <configuration name="gaslands-gdx [run]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -149,6 +175,7 @@
       <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
       <method v="2" />
     </configuration>
     <configuration name="addresslabel-1.0.0.jar" type="JarApplication" temporary="true">
@@ -160,9 +187,9 @@
     </configuration>
     <list>
       <item itemvalue="Gradle.addresslabel [dist]" />
-      <item itemvalue="JAR Application.addresslabel-1.0.0.jar" />
       <item itemvalue="Gradle.gaslands-gdx [run]" />
       <item itemvalue="Gradle.gaslands-gdx [processTestResources]" />
+      <item itemvalue="JAR Application.addresslabel-1.0.0.jar" />
     </list>
     <recent_temporary>
       <list>
@@ -172,6 +199,14 @@
         <item itemvalue="Gradle.addresslabel [dist]" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-28b599e66164-intellij.indexing.shared.core-IU-242.23726.103" />
+        <option value="bundled-js-predefined-d6986cc7102b-5c90d61e3bab-JavaScript-IU-242.23726.103" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -196,7 +231,9 @@
       <workItem from="1676994464996" duration="598000" />
       <workItem from="1679103112470" duration="5000" />
       <workItem from="1701621777351" duration="397000" />
-      <workItem from="1701637343612" duration="16274000" />
+      <workItem from="1701637343612" duration="22904000" />
+      <workItem from="1702373232936" duration="630000" />
+      <workItem from="1733624020824" duration="12885000" />
     </task>
     <task id="LOCAL-00001" summary="Major Updates">
       <created>1671334111243</created>

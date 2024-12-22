@@ -43,7 +43,7 @@ public class GoogleApi {
     private static final String CREDENTIALS_FILE_PATH = "/client_secrets.json";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 
-    private Model model;
+    private final Model model;
     private PeopleService service = null;
 
     public GoogleApi(Model model) {
